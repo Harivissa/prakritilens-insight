@@ -118,6 +118,13 @@ export function FileUpload() {
     setFiles(prev => prev.filter(file => file.id !== fileId));
   };
 
+  const viewDetailedReport = (file: UploadedFile) => {
+    if (file.analysis) {
+      // For now, we'll just show an alert. This can be replaced with a modal or navigation to a detailed report page
+      alert(`Detailed Report for ${file.name}\n\nCompany: ${file.analysis.company}\nESG Score: ${file.analysis.overallScore.toFixed(1)}\n\nRisks:\n${file.analysis.risks.map(r => `• ${r}`).join('\n')}\n\nOpportunities:\n${file.analysis.opportunities.map(o => `• ${o}`).join('\n')}`);
+    }
+  };
+
   const formatFileSize = (bytes: number) => {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     if (bytes === 0) return '0 Bytes';
@@ -249,7 +256,12 @@ export function FileUpload() {
                           </ul>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm" className="w-full">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => viewDetailedReport(file)}
+                      >
                         View Detailed Report
                       </Button>
                     </div>
