@@ -18,10 +18,10 @@ interface FilterState {
 export function SearchFilters() {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
-    industry: '',
-    riskLevel: '',
+    industry: 'all',
+    riskLevel: 'all',
     esgScore: [0],
-    reportDate: ''
+    reportDate: 'all'
   });
 
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
@@ -30,9 +30,9 @@ export function SearchFilters() {
     setFilters(prev => ({ ...prev, [key]: value }));
     
     // Add to active filters if not already present
-    if (value && !activeFilters.includes(key)) {
+    if (value && value !== 'all' && !activeFilters.includes(key)) {
       setActiveFilters(prev => [...prev, key]);
-    } else if (!value) {
+    } else if (!value || value === 'all') {
       setActiveFilters(prev => prev.filter(f => f !== key));
     }
   };
@@ -40,10 +40,10 @@ export function SearchFilters() {
   const clearFilter = (key: string) => {
     const defaultValues: { [key: string]: any } = {
       search: '',
-      industry: '',
-      riskLevel: '',
+      industry: 'all',
+      riskLevel: 'all',
       esgScore: [0],
-      reportDate: ''
+      reportDate: 'all'
     };
     
     setFilters(prev => ({ ...prev, [key]: defaultValues[key] }));
@@ -53,10 +53,10 @@ export function SearchFilters() {
   const clearAllFilters = () => {
     setFilters({
       search: '',
-      industry: '',
-      riskLevel: '',
+      industry: 'all',
+      riskLevel: 'all',
       esgScore: [0],
-      reportDate: ''
+      reportDate: 'all'
     });
     setActiveFilters([]);
   };
@@ -107,7 +107,7 @@ export function SearchFilters() {
                 <SelectValue placeholder="All Industries" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 <SelectItem value="technology">Technology</SelectItem>
                 <SelectItem value="automotive">Automotive</SelectItem>
                 <SelectItem value="energy">Energy</SelectItem>
@@ -125,7 +125,7 @@ export function SearchFilters() {
                 <SelectValue placeholder="All Risk Levels" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Risk Levels</SelectItem>
+                <SelectItem value="all">All Risk Levels</SelectItem>
                 <SelectItem value="low">Low Risk</SelectItem>
                 <SelectItem value="medium">Medium Risk</SelectItem>
                 <SelectItem value="high">High Risk</SelectItem>
@@ -140,7 +140,7 @@ export function SearchFilters() {
                 <SelectValue placeholder="All Periods" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Periods</SelectItem>
+                <SelectItem value="all">All Periods</SelectItem>
                 <SelectItem value="last-month">Last Month</SelectItem>
                 <SelectItem value="last-quarter">Last Quarter</SelectItem>
                 <SelectItem value="last-year">Last Year</SelectItem>
@@ -174,7 +174,7 @@ export function SearchFilters() {
             <div className="flex flex-wrap gap-2">
               {activeFilters.map((filterKey) => {
                 const value = filters[filterKey as keyof FilterState];
-                if (!value || (Array.isArray(value) && value[0] === 0)) return null;
+                if (!value || value === 'all' || (Array.isArray(value) && value[0] === 0)) return null;
                 
                 return (
                   <Badge key={filterKey} variant="secondary" className="gap-1">
