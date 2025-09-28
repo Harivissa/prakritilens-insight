@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Upload, FileText, X, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DetailedReport } from './DetailedReport';
 
 interface UploadedFile {
   id: string;
@@ -23,6 +24,8 @@ interface UploadedFile {
 export function FileUpload() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<UploadedFile | null>(null);
+  const [showDetailedReport, setShowDetailedReport] = useState(false);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -120,8 +123,8 @@ export function FileUpload() {
 
   const viewDetailedReport = (file: UploadedFile) => {
     if (file.analysis) {
-      // For now, we'll just show an alert. This can be replaced with a modal or navigation to a detailed report page
-      alert(`Detailed Report for ${file.name}\n\nCompany: ${file.analysis.company}\nESG Score: ${file.analysis.overallScore.toFixed(1)}\n\nRisks:\n${file.analysis.risks.map(r => `• ${r}`).join('\n')}\n\nOpportunities:\n${file.analysis.opportunities.map(o => `• ${o}`).join('\n')}`);
+      setSelectedReport(file);
+      setShowDetailedReport(true);
     }
   };
 
@@ -134,6 +137,16 @@ export function FileUpload() {
 
   return (
     <div className="space-y-6">
+      {/* Detailed Report Modal */}
+      {selectedReport && selectedReport.analysis && (
+        <DetailedReport
+          isOpen={showDetailedReport}
+          onClose={() => setShowDetailedReport(false)}
+          fileName={selectedReport.name}
+          data={selectedReport.analysis}
+        />
+      )}
+      
       {/* Upload Area */}
       <Card>
         <CardHeader>
