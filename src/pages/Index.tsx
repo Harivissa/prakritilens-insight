@@ -1,14 +1,37 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { LandingPage } from '@/components/LandingPage';
+import { AuthPage } from '@/components/AuthPage';
+import { Dashboard } from '@/components/Dashboard';
+
+type AppState = 'landing' | 'auth' | 'dashboard';
 
 const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [currentView, setCurrentView] = useState<AppState>('landing');
+
+  const handleGetStarted = () => {
+    setCurrentView('auth');
+  };
+
+  const handleLogin = () => {
+    setCurrentView('dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentView('landing');
+  };
+
+  const handleBackToLanding = () => {
+    setCurrentView('landing');
+  };
+
+  switch (currentView) {
+    case 'auth':
+      return <AuthPage onLogin={handleLogin} onBack={handleBackToLanding} />;
+    case 'dashboard':
+      return <Dashboard onLogout={handleLogout} />;
+    default:
+      return <LandingPage onGetStarted={handleGetStarted} />;
+  }
 };
 
 export default Index;
