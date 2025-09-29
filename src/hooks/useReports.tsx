@@ -47,8 +47,8 @@ export const useReports = () => {
     score: number;
     company_name: string;
     file_name: string;
-    file_url: string;
-    hash: string;
+    file_url?: string;
+    hash?: string;
     analysis_data: any;
   }) => {
     if (!user) throw new Error('User not authenticated');
