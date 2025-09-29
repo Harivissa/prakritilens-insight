@@ -6,10 +6,11 @@ import { toast } from '@/hooks/use-toast';
 export interface Report {
   id: string;
   user_id: string;
-  report_file: string | null;
-  score: number;
   company_name: string | null;
   file_name: string | null;
+  file_url: string | null;
+  score: number;
+  hash: string;
   analysis_data: any;
   created_at: string;
   updated_at: string;
@@ -25,10 +26,10 @@ export const useReports = () => {
     
     setLoading(true);
     try {
-      // Use direct query with type casting until types are regenerated
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('reports')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -46,12 +47,14 @@ export const useReports = () => {
     score: number;
     company_name: string;
     file_name: string;
+    file_url: string;
+    hash: string;
     analysis_data: any;
   }) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('reports')
         .insert([
           {
@@ -59,6 +62,8 @@ export const useReports = () => {
             score: reportData.score,
             company_name: reportData.company_name,
             file_name: reportData.file_name,
+            file_url: reportData.file_url,
+            hash: reportData.hash,
             analysis_data: reportData.analysis_data,
           }
         ])
@@ -113,11 +118,14 @@ export const useReports = () => {
   };
 
   const deleteReport = async (reportId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('reports')
         .delete()
-        .eq('id', reportId);
+        .eq('id', reportId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
 

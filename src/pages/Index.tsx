@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { LandingPage } from '@/components/LandingPage';
-import { ESGPlatform } from '@/components/ESGPlatform';
+import ProfessionalESGPlatform from '@/components/ProfessionalESGPlatform';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const Index = () => {
@@ -14,7 +14,7 @@ const Index = () => {
     );
   }
 
-  return user ? <ESGPlatform /> : <LandingPage />;
+  return user ? <ProfessionalESGPlatform /> : <LandingPage />;
 };
 
 export default Index;
