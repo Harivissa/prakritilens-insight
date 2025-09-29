@@ -38,7 +38,7 @@ interface UploadedFile {
 export const ProfessionalFileUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
-  const { saveReport } = useReports();
+  const { saveReport, uploadFile } = useReports();
   const { analyzeDocument, isAnalyzing } = useESGScoring();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -98,11 +98,12 @@ export const ProfessionalFileUpload = () => {
       );
 
       // Save to database
+      const storedUrl = await uploadFile(fileData.file);
       await saveReport({
         score: analysis.score,
         company_name: `Company_${Date.now()}`,
         file_name: fileData.file.name,
-        file_url: URL.createObjectURL(fileData.file),
+        file_url: storedUrl,
         hash: `hash_${Date.now()}`,
         analysis_data: analysis
       });
@@ -157,7 +158,16 @@ export const ProfessionalFileUpload = () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
     maxSize: 10 * 1024 * 1024, // 10MB
-    multiple: true
+    multiple: true,
+    onDropRejected: (fileRejections) => {
+      const reasons = fileRejections.flatMap(r => r.errors.map(e => e.message)).join('; ');
+      toast({
+        title: 'Upload failed',
+        description: reasons || 'Some files were rejected. Please check file type and size limits.',
+        variant: 'destructive',
+      });
+      setIsDragActive(false);
+    },
   });
 
   const getFileIcon = (fileName: string) => {

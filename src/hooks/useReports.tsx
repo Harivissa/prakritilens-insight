@@ -97,18 +97,25 @@ export const useReports = () => {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('reports')
-        .upload(fileName, file);
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+          contentType: file.type || undefined,
+        });
 
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage
+      // Bucket is private: return a signed URL valid for 7 days
+      const { data: signed } = await supabase.storage
         .from('reports')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24 * 7);
 
-      return data.publicUrl;
+      if (!signed?.signedUrl) throw new Error('Failed to create file URL');
+
+      return signed.signedUrl;
     } catch (error: any) {
       toast({
         title: "Error uploading file",

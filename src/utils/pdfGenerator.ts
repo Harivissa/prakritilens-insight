@@ -1,6 +1,6 @@
+import PptxGenJS from 'pptxgenjs';
 // PDF generation utilities for ESG reports
 // Note: This is a simplified version. In production, you'd use libraries like jsPDF or PDFKit
-
 export interface ESGReportData {
   companyName: string;
   score: number;
@@ -251,4 +251,61 @@ export const downloadPDF = async (data: ESGReportData) => {
     console.error('Error generating PDF:', error);
     throw error;
   }
+};
+
+export const downloadCSV = (data: ESGReportData) => {
+  const rows: (string | number)[][] = [
+    ['Company', data.companyName],
+    ['Overall Score', data.score],
+    ['Environmental', data.breakdown.environmental],
+    ['Social', data.breakdown.social],
+    ['Governance', data.breakdown.governance],
+    [],
+    ['Analysis'],
+    ...data.analysis.map((a) => [a]),
+    [],
+    ['Risks'],
+    ...data.risks.map((r) => [r]),
+    [],
+    ['Opportunities'],
+    ...data.opportunities.map((o) => [o]),
+  ];
+  const csv = rows
+    .map((r) => r.map((v) => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `ESG_Report_${data.companyName}_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+export const downloadPPTX = async (data: ESGReportData) => {
+  const pptx = new PptxGenJS();
+  pptx.defineLayout({ name: 'LAYOUT_WIDE', width: 13.33, height: 7.5 });
+  pptx.layout = 'LAYOUT_WIDE';
+
+  const titleSlide = pptx.addSlide();
+  titleSlide.addText('PrakritiLens ESG Report', { x: 0.5, y: 0.5, fontSize: 28, bold: true, color: '22C55E' });
+  titleSlide.addText(`Company: ${data.companyName}`, { x: 0.5, y: 1.2, fontSize: 16 });
+  titleSlide.addText(`Generated: ${new Date(data.generatedAt).toLocaleDateString()}`, { x: 0.5, y: 1.7, fontSize: 14, color: '666666' });
+  titleSlide.addText(`Overall Score: ${data.score}`, { x: 0.5, y: 2.3, fontSize: 22, bold: true });
+  titleSlide.addText(`E: ${data.breakdown.environmental}  S: ${data.breakdown.social}  G: ${data.breakdown.governance}`, { x: 0.5, y: 2.9, fontSize: 16 });
+
+  const analysisSlide = pptx.addSlide();
+  analysisSlide.addText('Key Analysis', { x: 0.5, y: 0.5, fontSize: 20, bold: true });
+  analysisSlide.addText(data.analysis.map((a) => `• ${a}`).join('\n'), { x: 0.5, y: 1.1, fontSize: 14, bullet: true, color: '333333' });
+
+  const risksOppSlide = pptx.addSlide();
+  risksOppSlide.addText('Risks', { x: 0.5, y: 0.5, fontSize: 20, bold: true, color: 'DC2626' });
+  risksOppSlide.addText(data.risks.map((r) => `• ${r}`).join('\n'), { x: 0.5, y: 1.1, fontSize: 14, bullet: true });
+  risksOppSlide.addText('Opportunities', { x: 7, y: 0.5, fontSize: 20, bold: true, color: '059669' });
+  risksOppSlide.addText(data.opportunities.map((o) => `• ${o}`).join('\n'), { x: 7, y: 1.1, fontSize: 14, bullet: true });
+
+  const date = new Date().toISOString().split('T')[0];
+  await pptx.writeFile({ fileName: `ESG_Report_${data.companyName}_${date}.pptx` });
 };

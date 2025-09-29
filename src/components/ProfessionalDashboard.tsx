@@ -19,6 +19,8 @@ import { useReports } from '@/hooks/useReports';
 import { ProfessionalFileUpload } from './ProfessionalFileUpload';
 import { ProfessionalChat } from './ProfessionalChat';
 import { DetailedReportModal } from './DetailedReportModal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 
 export const ProfessionalDashboard = () => {
   const { user, signOut } = useAuth();
@@ -59,24 +61,23 @@ export const ProfessionalDashboard = () => {
     setShowDetailModal(true);
   };
 
-  const handleDownloadReport = (report: any) => {
-    // Generate and download report
-    const reportData = {
-      company: report.company_name,
-      score: report.score,
-      analysis: report.analysis_data,
-      date: new Date(report.created_at).toLocaleDateString()
+  const handleDownloadReport = async (report: any) => {
+    const data = {
+      companyName: report.company_name || 'Unknown Company',
+      score: Number(report.score) || 0,
+      breakdown: report.analysis_data?.breakdown || {
+        environmental: 0,
+        social: 0,
+        governance: 0,
+      },
+      analysis: report.analysis_data?.analysis || [],
+      risks: report.analysis_data?.risks || [],
+      opportunities: report.analysis_data?.opportunities || [],
+      fileName: report.file_name || 'report',
+      generatedAt: report.created_at || new Date().toISOString(),
     };
-    
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${report.company_name}_ESG_Report.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    await downloadPDF(data);
   };
 
   const kpiCards = [
