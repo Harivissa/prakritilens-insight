@@ -75,12 +75,12 @@ export const ProfessionalChat = () => {
   };
 
   const sampleQuestions = [
-    "What are the key ESG trends for 2024?",
-    "How can I improve my company's environmental score?",
+    "What are the key ESG trends for 2024 and how can PrakritiLens help?",
+    "How can I improve my company's environmental score using AI insights?",
     "Explain the difference between ESG and sustainability reporting",
-    "What are the most important ESG metrics to track?",
-    "How do investors evaluate ESG performance?",
-    "What are common ESG risks in the technology sector?"
+    "What are the most important ESG metrics to track for investors?",
+    "How do investors evaluate ESG performance in the current market?",
+    "What are common ESG risks in the technology sector and mitigation strategies?"
   ];
 
   const formatTimestamp = (timestamp: string) => {
@@ -107,7 +107,7 @@ export const ProfessionalChat = () => {
                 </div>
                 <div>
                   <CardTitle className="flex items-center space-x-2">
-                    <span>ESG AI Assistant</span>
+                    <span>PrakritiLens AI Assistant</span>
                     <Badge variant="secondary" className="text-xs">
                       <Sparkles className="w-3 h-3 mr-1" />
                       AI Powered
@@ -152,10 +152,11 @@ export const ProfessionalChat = () => {
                     <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
                       <Bot className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">Welcome to ESG AI Assistant</h3>
+                    <h3 className="text-xl font-semibold mb-2">Welcome to PrakritiLens AI</h3>
                     <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                      I'm here to help you with ESG analysis, sustainability questions, 
-                      and insights from your uploaded reports.
+                      I'm your intelligent ESG assistant, powered by advanced AI. I can help you analyze 
+                      sustainability reports, understand ESG trends, and provide actionable insights for 
+                      your business's environmental and social impact.
                     </p>
                     
                     {/* Sample Questions */}
@@ -289,7 +290,7 @@ export const ProfessionalChat = () => {
                 <Textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask me about ESG, sustainability, or your reports..."
+                  placeholder="Ask me anything about ESG, sustainability, climate action, or your reports..."
                   className="min-h-[60px] max-h-32 resize-none border-0 focus-visible:ring-1 focus-visible:ring-primary"
                   disabled={sending}
                   onKeyDown={(e) => {
@@ -316,7 +317,7 @@ export const ProfessionalChat = () => {
             <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
               <div className="flex items-center space-x-2">
                 <Zap className="w-3 h-3" />
-                <span>Powered by advanced AI</span>
+                <span>Powered by PrakritiLens AI • Real-time insights</span>
               </div>
               <div>
                 Press Shift+Enter for new line

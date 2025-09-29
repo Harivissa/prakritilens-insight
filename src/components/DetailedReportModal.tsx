@@ -29,34 +29,76 @@ interface DetailedReportModalProps {
 }
 
 export const DetailedReportModal = ({ isOpen, onClose, fileName, reportData }: DetailedReportModalProps) => {
-  const handleDownloadPDF = () => {
-    // Generate PDF report
-    const reportContent = `
-ESG Analysis Report - ${reportData.company}
-Generated: ${new Date().toLocaleDateString()}
-
-Overall ESG Score: ${reportData.score}/100
-
-Key Risks:
-${reportData.risks.map(risk => `• ${risk}`).join('\n')}
-
-Opportunities:
-${reportData.opportunities.map(opp => `• ${opp}`).join('\n')}
-    `;
+  const handleDownloadPDF = async () => {
+    // Import and use the PDF generator from utils
+    const { downloadPDF } = await import('@/utils/pdfGenerator');
     
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${reportData.company}_ESG_Report.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const data = {
+      companyName: reportData.company,
+      score: reportData.score,
+      breakdown: {
+        environmental: environmentalScore,
+        social: socialScore,
+        governance: governanceScore,
+      },
+      analysis: [`Overall ESG Score: ${reportData.score}/100`],
+      risks: reportData.risks,
+      opportunities: reportData.opportunities,
+      fileName: fileName,
+      generatedAt: new Date().toISOString(),
+    };
+
+    await downloadPDF(data);
   };
 
   const handlePrint = () => {
-    window.print();
+    // Create a new window with the report content
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>ESG Analysis Report - ${reportData.company}</title>
+            <style>
+              body { font-family: Arial, sans-serif; margin: 20px; }
+              .header { text-align: center; margin-bottom: 30px; }
+              .score { font-size: 24px; font-weight: bold; color: #059669; }
+              .section { margin: 20px 0; }
+              .section h3 { color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 5px; }
+              .risk { color: #dc2626; margin: 5px 0; }
+              .opportunity { color: #059669; margin: 5px 0; }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1>PrakritiLens ESG Analysis Report</h1>
+              <h2>${reportData.company}</h2>
+              <div class="score">Overall ESG Score: ${reportData.score}/100</div>
+              <p>Generated: ${new Date().toLocaleDateString()}</p>
+            </div>
+            
+            <div class="section">
+              <h3>ESG Breakdown</h3>
+              <p>Environmental: ${environmentalScore.toFixed(1)}/100</p>
+              <p>Social: ${socialScore.toFixed(1)}/100</p>
+              <p>Governance: ${governanceScore.toFixed(1)}/100</p>
+            </div>
+            
+            <div class="section">
+              <h3>Key Risks</h3>
+              ${reportData.risks.map(risk => `<div class="risk">• ${risk}</div>`).join('')}
+            </div>
+            
+            <div class="section">
+              <h3>Growth Opportunities</h3>
+              ${reportData.opportunities.map(opp => `<div class="opportunity">• ${opp}</div>`).join('')}
+            </div>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   const getScoreColor = (score: number) => {

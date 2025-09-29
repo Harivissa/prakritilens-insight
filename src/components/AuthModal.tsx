@@ -177,8 +177,8 @@ export const AuthModal = ({ isOpen, onClose, mode, onModeChange }: AuthModalProp
             {showForgotPassword 
               ? 'Enter your email to receive a password reset link'
               : mode === 'signup'
-                ? 'Start your ESG journey today'
-                : 'Sign in to your account to continue'
+              ? 'Start your journey with PrakritiLens today'
+              : 'Sign in to your PrakritiLens account'
             }
           </DialogDescription>
         </DialogHeader>

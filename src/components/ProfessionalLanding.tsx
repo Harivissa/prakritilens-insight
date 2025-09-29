@@ -118,7 +118,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               <Globe className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              ESG Analytics Pro
+              PrakritiLens
             </span>
           </motion.div>
           
@@ -159,10 +159,10 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
             >
               <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                AI-Powered ESG
+                PrakritiLens
               </span>
               <br />
-              <span className="text-foreground">Analytics Platform</span>
+              <span className="text-foreground">AI-Powered ESG Analytics</span>
             </motion.h1>
             
             <motion.p 
@@ -374,7 +374,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                 <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
                   <Globe className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-lg font-bold">ESG Analytics Pro</span>
+                <span className="text-lg font-bold">PrakritiLens</span>
               </div>
               <p className="text-muted-foreground mb-4">
                 The most advanced AI-powered ESG analytics platform trusted by industry leaders worldwide.
@@ -412,8 +412,11 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             </div>
           </div>
           
-          <div className="border-t border-border pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 ESG Analytics Pro. All rights reserved. Built with ❤️ for a sustainable future.</p>
+          <div className="border-t border-border pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center text-muted-foreground">
+              <p>&copy; 2024 PrakritiLens. All rights reserved.</p>
+              <p className="text-sm mt-2 md:mt-0">Made by Hari Vissa and Michelle</p>
+            </div>
           </div>
         </div>
       </footer>

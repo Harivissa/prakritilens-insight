@@ -17,8 +17,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useReports } from '@/hooks/useReports';
 import { ProfessionalFileUpload } from './ProfessionalFileUpload';
-import { ProfessionalChat } from './ProfessionalChat';
+import { EnhancedChatBot } from './EnhancedChatBot';
 import { DetailedReportModal } from './DetailedReportModal';
+import { InteractiveCharts } from './InteractiveCharts';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 
@@ -124,7 +125,7 @@ export const ProfessionalDashboard = () => {
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Globe className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold">ESG Analytics Pro</h1>
+            <h1 className="text-xl font-bold">PrakritiLens</h1>
             <Badge variant="secondary" className="hidden md:inline-flex">Dashboard</Badge>
           </div>
           
@@ -249,7 +250,7 @@ export const ProfessionalDashboard = () => {
               ))}
             </motion.div>
 
-            {/* Recent Reports */}
+          {/* Recent Reports */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -261,7 +262,7 @@ export const ProfessionalDashboard = () => {
                     <div>
                       <CardTitle>Recent ESG Reports</CardTitle>
                       <CardDescription>
-                        Your latest document analysis results
+                        Your latest document analysis results from PrakritiLens AI
                       </CardDescription>
                     </div>
                     <Button variant="outline" size="sm">
@@ -302,16 +303,52 @@ export const ProfessionalDashboard = () => {
                               variant="ghost" 
                               size="sm"
                               onClick={() => handleViewReport(report)}
+                              title="View detailed report"
                             >
                               <Eye className="w-4 h-4" />
                             </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDownloadReport(report)}
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" title="Download options">
+                                  <Download className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                <DropdownMenuItem onClick={() => handleDownloadReport(report)}>
+                                  Download PDF
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={async () => {
+                                  const data = {
+                                    companyName: report.company_name || 'Unknown Company',
+                                    score: Number(report.score) || 0,
+                                    breakdown: report.analysis_data?.breakdown || { environmental: 0, social: 0, governance: 0 },
+                                    analysis: report.analysis_data?.analysis || [],
+                                    risks: report.analysis_data?.risks || [],
+                                    opportunities: report.analysis_data?.opportunities || [],
+                                    fileName: report.file_name || 'report',
+                                    generatedAt: report.created_at || new Date().toISOString(),
+                                  };
+                                  await downloadCSV(data);
+                                }}>
+                                  Download CSV
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={async () => {
+                                  const data = {
+                                    companyName: report.company_name || 'Unknown Company',
+                                    score: Number(report.score) || 0,
+                                    breakdown: report.analysis_data?.breakdown || { environmental: 0, social: 0, governance: 0 },
+                                    analysis: report.analysis_data?.analysis || [],
+                                    risks: report.analysis_data?.risks || [],
+                                    opportunities: report.analysis_data?.opportunities || [],
+                                    fileName: report.file_name || 'report',
+                                    generatedAt: report.created_at || new Date().toISOString(),
+                                  };
+                                  await downloadPPTX(data);
+                                }}>
+                                  Download PPTX
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
                         </motion.div>
                       ))}
@@ -329,7 +366,7 @@ export const ProfessionalDashboard = () => {
 
           {/* Chat Tab */}
           <TabsContent value="chat">
-            <ProfessionalChat />
+            <EnhancedChatBot />
           </TabsContent>
 
           {/* Reports Tab */}
@@ -382,16 +419,48 @@ export const ProfessionalDashboard = () => {
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDownloadReport(report)}
-                          >
-                            <Download className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <Download className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem onClick={() => handleDownloadReport(report)}>
+                                Download PDF
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={async () => {
+                                const data = {
+                                  companyName: report.company_name || 'Unknown Company',
+                                  score: Number(report.score) || 0,
+                                  breakdown: report.analysis_data?.breakdown || { environmental: 0, social: 0, governance: 0 },
+                                  analysis: report.analysis_data?.analysis || [],
+                                  risks: report.analysis_data?.risks || [],
+                                  opportunities: report.analysis_data?.opportunities || [],
+                                  fileName: report.file_name || 'report',
+                                  generatedAt: report.created_at || new Date().toISOString(),
+                                };
+                                await downloadCSV(data);
+                              }}>
+                                Download CSV
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={async () => {
+                                const data = {
+                                  companyName: report.company_name || 'Unknown Company',
+                                  score: Number(report.score) || 0,
+                                  breakdown: report.analysis_data?.breakdown || { environmental: 0, social: 0, governance: 0 },
+                                  analysis: report.analysis_data?.analysis || [],
+                                  risks: report.analysis_data?.risks || [],
+                                  opportunities: report.analysis_data?.opportunities || [],
+                                  fileName: report.file_name || 'report',
+                                  generatedAt: report.created_at || new Date().toISOString(),
+                                };
+                                await downloadPPTX(data);
+                              }}>
+                                Download PPTX
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </motion.div>
@@ -403,30 +472,10 @@ export const ProfessionalDashboard = () => {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-6">
-            <Card className="gradient-card border-0 shadow-card">
-              <CardHeader>
-                <CardTitle>Advanced Analytics</CardTitle>
-                <CardDescription>
-                  Deep insights into your ESG performance trends
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h4 className="font-semibold">Score Distribution</h4>
-                    <div className="h-48 bg-muted/30 rounded-lg flex items-center justify-center">
-                      <p className="text-muted-foreground">Interactive Chart Coming Soon</p>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="font-semibold">Trend Analysis</h4>
-                    <div className="h-48 bg-muted/30 rounded-lg flex items-center justify-center">
-                      <p className="text-muted-foreground">Trend Visualization Coming Soon</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <InteractiveCharts 
+              companyName={reports.length > 0 ? reports[0].company_name : "Your Company"}
+              score={avgScore}
+            />
           </TabsContent>
         </Tabs>
       </div>

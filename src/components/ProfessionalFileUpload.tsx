@@ -286,7 +286,7 @@ export const ProfessionalFileUpload = () => {
           <div>
             <h2 className="text-2xl font-bold text-foreground">Upload Documents</h2>
             <p className="text-muted-foreground">
-              Upload your ESG documents for AI-powered analysis and insights
+              description="Advanced AI-powered document analysis with PrakritiLens for comprehensive ESG insights"
             </p>
           </div>
           <Badge variant="secondary" className="hidden md:inline-flex">
