@@ -208,7 +208,7 @@ export const FileUploadInterface = () => {
       {/* Upload Area */}
       <Card>
         <CardContent className="p-6">
-          <motion.div
+          <div
             {...getRootProps()}
             className={cn(
               "border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all",
@@ -216,8 +216,6 @@ export const FileUploadInterface = () => {
                 ? "border-primary bg-primary/5 scale-105"
                 : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/25"
             )}
-            whileHover={{ scale: isDragActive ? 1.05 : 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
             <input {...getInputProps()} />
             
@@ -260,7 +258,7 @@ export const FileUploadInterface = () => {
                 </Button>
               )}
             </motion.div>
-          </motion.div>
+          </div>
         </CardContent>
       </Card>
 
