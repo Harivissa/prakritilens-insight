@@ -18,7 +18,8 @@ import { useProfile } from '@/hooks/useProfile';
 import { useReports } from '@/hooks/useReports';
 import { ProfessionalFileUpload } from './ProfessionalFileUpload';
 import { EnhancedChatBot } from './EnhancedChatBot';
-import { DetailedReportModal } from './DetailedReportModal';
+import { ESGNewsFeed } from './ESGNewsFeed';
+import { EnhancedDetailedReportModal } from './EnhancedDetailedReportModal';
 import { InteractiveCharts } from './InteractiveCharts';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
@@ -476,13 +477,18 @@ export const ProfessionalDashboard = () => {
               companyName={reports.length > 0 ? reports[0].company_name : "Your Company"}
               score={avgScore}
             />
+            
+            {/* ESG News Feed */}
+            <div className="mt-8">
+              <ESGNewsFeed />
+            </div>
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Detailed Report Modal */}
+      {/* Enhanced Detailed Report Modal */}
       {selectedReport && (
-        <DetailedReportModal
+        <EnhancedDetailedReportModal
           isOpen={showDetailModal}
           onClose={() => setShowDetailModal(false)}
           fileName={selectedReport.file_name}
@@ -490,7 +496,9 @@ export const ProfessionalDashboard = () => {
             company: selectedReport.company_name,
             score: selectedReport.score,
             risks: selectedReport.analysis_data?.risks || [],
-            opportunities: selectedReport.analysis_data?.opportunities || []
+            opportunities: selectedReport.analysis_data?.opportunities || [],
+            breakdown: selectedReport.analysis_data?.breakdown,
+            analysis: selectedReport.analysis_data?.analysis
           }}
         />
       )}
