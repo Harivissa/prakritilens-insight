@@ -10,7 +10,8 @@ import {
   Upload, MessageSquare, BarChart3, Settings, Search, Bell, 
   User, LogOut, TrendingUp, TrendingDown, FileText, Eye, 
   Download, Filter, Calendar, Globe, Zap, Shield, Users,
-  ChevronRight, Activity, PieChart, MoreVertical, RefreshCw
+  ChevronRight, Activity, PieChart, MoreVertical, RefreshCw,
+  Trash2, UserCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,6 +22,9 @@ import { EnhancedChatBot } from './EnhancedChatBot';
 import { ESGNewsFeed } from './ESGNewsFeed';
 import { EnhancedDetailedReportModal } from './EnhancedDetailedReportModal';
 import { InteractiveCharts } from './InteractiveCharts';
+import { ESGWeightsCustomizer } from './ESGWeightsCustomizer';
+import { UserRoleManager } from './UserRoleManager';
+import { DarkModeToggle } from './DarkModeToggle';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 
@@ -32,6 +36,7 @@ export const ProfessionalDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [esgWeights, setESGWeights] = useState({ environmental: 40, social: 35, governance: 25 });
 
   // Calculate key metrics
   const totalReports = reports.length;
@@ -61,6 +66,14 @@ export const ProfessionalDashboard = () => {
   const handleViewReport = (report: any) => {
     setSelectedReport(report);
     setShowDetailModal(true);
+  };
+
+  const handleDeleteReport = async (reportId: string) => {
+    try {
+      await reports.find(r => r.id === reportId) && await useReports().deleteReport(reportId);
+    } catch (error) {
+      console.error('Error deleting report:', error);
+    }
   };
 
   const handleDownloadReport = async (report: any) => {
@@ -143,6 +156,7 @@ export const ProfessionalDashboard = () => {
             <Button variant="ghost" size="sm">
               <Bell className="w-4 h-4" />
             </Button>
+            <DarkModeToggle />
             <Button variant="ghost" size="sm">
               <Settings className="w-4 h-4" />
             </Button>
@@ -185,7 +199,7 @@ export const ProfessionalDashboard = () => {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-8">
+          <TabsList className="grid w-full grid-cols-7 mb-8">
             <TabsTrigger value="overview" className="flex items-center space-x-2">
               <BarChart3 className="w-4 h-4" />
               <span className="hidden sm:inline">Overview</span>
@@ -205,6 +219,14 @@ export const ProfessionalDashboard = () => {
             <TabsTrigger value="analytics" className="flex items-center space-x-2">
               <TrendingUp className="w-4 h-4" />
               <span className="hidden sm:inline">Analytics</span>
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="flex items-center space-x-2">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </TabsTrigger>
+            <TabsTrigger value="admin" className="flex items-center space-x-2">
+              <UserCheck className="w-4 h-4" />
+              <span className="hidden sm:inline">Admin</span>
             </TabsTrigger>
           </TabsList>
 
@@ -310,12 +332,13 @@ export const ProfessionalDashboard = () => {
                             </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" title="Download options">
-                                  <Download className="w-4 h-4" />
+                                <Button variant="ghost" size="sm" title="Actions">
+                                  <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent>
                                 <DropdownMenuItem onClick={() => handleDownloadReport(report)}>
+                                  <Download className="w-4 h-4 mr-2" />
                                   Download PDF
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={async () => {
@@ -331,7 +354,8 @@ export const ProfessionalDashboard = () => {
                                   };
                                   await downloadCSV(data);
                                 }}>
-                                  Download CSV
+                                  <FileText className="w-4 h-4 mr-2" />
+                                  Export CSV
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={async () => {
                                   const data = {
@@ -346,7 +370,15 @@ export const ProfessionalDashboard = () => {
                                   };
                                   await downloadPPTX(data);
                                 }}>
-                                  Download PPTX
+                                  <PieChart className="w-4 h-4 mr-2" />
+                                  Generate PPTX
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteReport(report.id)}
+                                  className="text-red-600 focus:text-red-600"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Delete Report
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -482,6 +514,19 @@ export const ProfessionalDashboard = () => {
             <div className="mt-8">
               <ESGNewsFeed />
             </div>
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-6">
+            <ESGWeightsCustomizer 
+              weights={esgWeights}
+              onWeightsChange={setESGWeights}
+            />
+          </TabsContent>
+
+          {/* Admin Tab */}
+          <TabsContent value="admin" className="space-y-6">
+            <UserRoleManager />
           </TabsContent>
         </Tabs>
       </div>
