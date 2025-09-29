@@ -39,7 +39,7 @@ export const ESGPlatform = () => {
       // Upload file to storage
       const fileUrl = await uploadFile(file);
 
-      // Save report to database
+      // Save report to database with deterministic hash
       const analysisHash = generateContentHash(analysis.extractedText);
       
       await saveReport({
