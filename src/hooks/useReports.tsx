@@ -16,6 +16,15 @@ export interface Report {
   updated_at: string;
 }
 
+export type SaveReportInput = {
+  score: number;
+  company_name: string;
+  file_name: string;
+  file_url: string;
+  hash: string;
+  analysis_data: any;
+};
+
 export const useReports = () => {
   const { user } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
@@ -43,14 +52,7 @@ export const useReports = () => {
     }
   };
 
-  const saveReport = async (reportData: {
-    score: number;
-    company_name: string;
-    file_name: string;
-    file_url?: string;
-    hash?: string;
-    analysis_data: any;
-  }) => {
+  const saveReport = async (reportData: SaveReportInput) => {
     if (!user) throw new Error('User not authenticated');
 
     try {

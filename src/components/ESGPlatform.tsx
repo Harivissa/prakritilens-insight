@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useReports } from '@/hooks/useReports';
+import type { SaveReportInput } from '@/hooks/useReports';
 import { useESGScoring, generateContentHash } from '@/hooks/useESGScoring';
 import { downloadPDF } from '@/utils/pdfGenerator';
 import { Button } from '@/components/ui/button';
@@ -42,7 +43,7 @@ export const ESGPlatform = () => {
       // Save report to database with deterministic hash
       const analysisHash = generateContentHash(analysis.extractedText);
       
-      await saveReport({
+      const payload: SaveReportInput = {
         score: analysis.score,
         company_name: file.name.split('.')[0],
         file_name: file.name,
@@ -56,7 +57,8 @@ export const ESGPlatform = () => {
           extractedText: analysis.extractedText,
           fileUrl
         }
-      });
+      };
+      await saveReport(payload);
 
       toast({
         title: "Analysis complete",
