@@ -75,17 +75,34 @@ export const FileUploadInterface = () => {
       'text/plain': ['.txt'],
       'text/csv': ['.csv']
     },
-    maxSize: 20 * 1024 * 1024, // 20MB
+    maxSize: 50 * 1024 * 1024, // 50MB - Professional limit for comprehensive reports
     onDragEnter: () => setIsDragActive(true),
     onDragLeave: () => setIsDragActive(false),
     onDropAccepted: () => setIsDragActive(false),
     onDropRejected: (rejectedFiles) => {
       setIsDragActive(false);
-      toast({
-        title: 'Upload failed',
-        description: `Some files were rejected. Please check file type and size limits.`,
-        variant: 'destructive'
-      });
+      
+      // Group rejections by error type for better messaging
+      const sizeErrors = rejectedFiles.filter(r => r.errors.some(e => e.code === 'file-too-large'));
+      const typeErrors = rejectedFiles.filter(r => r.errors.some(e => e.code === 'file-invalid-type'));
+      
+      if (sizeErrors.length > 0) {
+        const fileNames = sizeErrors.map(r => r.file.name).join(', ');
+        toast({
+          title: 'File Size Limit Exceeded',
+          description: `Files too large: ${fileNames}. Maximum size is 50MB per file. Please compress your documents if needed.`,
+          variant: 'destructive'
+        });
+      }
+      
+      if (typeErrors.length > 0) {
+        const fileNames = typeErrors.map(r => r.file.name).join(', ');
+        toast({
+          title: 'Unsupported File Format',
+          description: `Unsupported files: ${fileNames}. Please upload PDF, DOCX, DOC, TXT, or CSV files only.`,
+          variant: 'destructive'
+        });
+      }
     }
   });
 
@@ -247,7 +264,7 @@ export const FileUploadInterface = () => {
                 </div>
                 
                 <p className="text-xs text-muted-foreground mt-2">
-                  Maximum file size: 20MB
+                  Maximum file size: 50MB per file • Perfect for comprehensive ESG reports
                 </p>
               </div>
 

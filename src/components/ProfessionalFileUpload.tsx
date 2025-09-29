@@ -59,33 +59,59 @@ export const ProfessionalFileUpload = () => {
 
   const simulateFileProcessing = async (fileData: UploadedFile) => {
     try {
-      // Simulate upload progress
+      const fileSize = fileData.file.size;
+      const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB+
+      
+      // Simulate upload progress with adjusted timing for large files
       setUploadedFiles(prev => 
         prev.map(f => f.id === fileData.id ? { ...f, status: 'uploading' } : f)
       );
 
-      for (let progress = 0; progress <= 100; progress += 10) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+      const uploadSteps = isLargeFile ? 20 : 10; // More granular progress for large files
+      const uploadDelay = isLargeFile ? 100 : 50; // Slower but more realistic for large files
+      
+      for (let step = 0; step <= uploadSteps; step++) {
+        const progress = (step / uploadSteps) * 100;
+        await new Promise(resolve => setTimeout(resolve, uploadDelay));
         setUploadedFiles(prev => 
           prev.map(f => f.id === fileData.id ? { ...f, progress } : f)
         );
       }
 
-      // Start analysis
+      // Start analysis with status update
       setUploadedFiles(prev => 
-        prev.map(f => f.id === fileData.id ? { ...f, status: 'processing', progress: 0 } : f)
+        prev.map(f => f.id === fileData.id ? { 
+          ...f, 
+          status: 'processing', 
+          progress: 0 
+        } : f)
       );
+
+      // Show processing message for large files
+      if (isLargeFile) {
+        toast({
+          title: "Processing Large File",
+          description: `Analyzing ${fileData.file.name} - this may take a moment for large documents.`,
+        });
+      }
 
       // Perform ESG analysis
       const analysis = await analyzeDocument(fileData.file);
 
-      // Simulate processing progress
-      for (let progress = 0; progress <= 100; progress += 20) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+      // Simulate processing progress with realistic timing for large files
+      const processSteps = isLargeFile ? 25 : 5;
+      const processDelay = isLargeFile ? 400 : 200;
+      
+      for (let step = 0; step <= processSteps; step++) {
+        const progress = (step / processSteps) * 100;
+        await new Promise(resolve => setTimeout(resolve, processDelay));
         setUploadedFiles(prev => 
           prev.map(f => f.id === fileData.id ? { ...f, progress } : f)
         );
       }
+
+      // Upload file to storage
+      const storedUrl = await uploadFile(fileData.file);
 
       // Complete processing
       setUploadedFiles(prev => 
@@ -98,7 +124,6 @@ export const ProfessionalFileUpload = () => {
       );
 
       // Save to database
-      const storedUrl = await uploadFile(fileData.file);
       await saveReport({
         score: analysis.score,
         company_name: `Company_${Date.now()}`,
@@ -110,21 +135,34 @@ export const ProfessionalFileUpload = () => {
 
       toast({
         title: "Analysis Complete",
-        description: `${fileData.file.name} has been analyzed successfully.`,
+        description: `${fileData.file.name} (${formatFileSize(fileSize)}) has been analyzed successfully.`,
       });
 
-    } catch (error) {
+    } catch (error: any) {
+      console.error('File processing error:', error);
+      
+      let errorMessage = 'Analysis failed. Please try again.';
+      
+      // Provide specific error messages based on the error
+      if (error.message?.includes('file too large')) {
+        errorMessage = 'File is too large for processing. Please try a smaller file or contact support.';
+      } else if (error.message?.includes('network')) {
+        errorMessage = 'Network error during upload. Please check your connection and try again.';
+      } else if (error.message?.includes('storage')) {
+        errorMessage = 'Storage error. Please try again or contact support if the issue persists.';
+      }
+      
       setUploadedFiles(prev => 
         prev.map(f => f.id === fileData.id ? { 
           ...f, 
           status: 'error', 
-          error: 'Analysis failed. Please try again.' 
+          error: errorMessage
         } : f)
       );
 
       toast({
         title: "Analysis Failed",
-        description: `Failed to analyze ${fileData.file.name}. Please try again.`,
+        description: `Failed to analyze ${fileData.file.name}: ${errorMessage}`,
         variant: "destructive",
       });
     }
@@ -157,16 +195,46 @@ export const ProfessionalFileUpload = () => {
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
     },
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: 50 * 1024 * 1024, // 50MB - Professional limit for large ESG reports
     multiple: true,
     onDropRejected: (fileRejections) => {
-      const reasons = fileRejections.flatMap(r => r.errors.map(e => e.message)).join('; ');
-      toast({
-        title: 'Upload failed',
-        description: reasons || 'Some files were rejected. Please check file type and size limits.',
-        variant: 'destructive',
-      });
       setIsDragActive(false);
+      
+      // Group rejections by type for better error messages
+      const sizeErrors = fileRejections.filter(r => r.errors.some(e => e.code === 'file-too-large'));
+      const typeErrors = fileRejections.filter(r => r.errors.some(e => e.code === 'file-invalid-type'));
+      
+      if (sizeErrors.length > 0) {
+        const fileNames = sizeErrors.map(r => r.file.name).join(', ');
+        toast({
+          title: 'File Size Limit Exceeded',
+          description: `Files too large: ${fileNames}. Maximum file size is 50MB per file. Please compress or split your document if needed.`,
+          variant: 'destructive',
+        });
+      }
+      
+      if (typeErrors.length > 0) {
+        const fileNames = typeErrors.map(r => r.file.name).join(', ');
+        toast({
+          title: 'Unsupported File Type',
+          description: `Unsupported files: ${fileNames}. Please upload PDF, DOCX, TXT, CSV, or Excel files only.`,
+          variant: 'destructive',
+        });
+      }
+      
+      // Handle other errors
+      const otherErrors = fileRejections.filter(r => 
+        !r.errors.some(e => ['file-too-large', 'file-invalid-type'].includes(e.code))
+      );
+      
+      if (otherErrors.length > 0) {
+        const reasons = otherErrors.flatMap(r => r.errors.map(e => e.message)).join('; ');
+        toast({
+          title: 'Upload Error',
+          description: reasons || 'Some files could not be processed. Please try again.',
+          variant: 'destructive',
+        });
+      }
     },
   });
 
@@ -264,7 +332,8 @@ export const ProfessionalFileUpload = () => {
               
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 Drag and drop your files here, or click to browse. 
-                Supports PDF, DOCX, TXT, CSV, and Excel files up to 10MB.
+                Supports PDF, DOCX, TXT, CSV, and Excel files up to 50MB each.
+                Perfect for comprehensive ESG reports and large documents.
               </p>
               
               <div className="flex flex-wrap justify-center gap-2 mb-6">

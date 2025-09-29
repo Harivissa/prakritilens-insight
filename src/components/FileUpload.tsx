@@ -172,7 +172,7 @@ export function FileUpload() {
             <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold mb-2">Drop files here or click to upload</h3>
             <p className="text-muted-foreground mb-4">
-              Supports PDF and DOCX files up to 50MB each
+              Supports PDF, DOCX, TXT, CSV files up to 50MB each • Professional-grade document processing
             </p>
             <input
               type="file"

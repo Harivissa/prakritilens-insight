@@ -95,8 +95,18 @@ export const useReports = () => {
     if (!user) throw new Error('User not authenticated');
 
     try {
+      const fileSize = file.size;
+      const fileSizeMB = (fileSize / (1024 * 1024)).toFixed(2);
+      
+      // Check file size against reasonable limits
+      if (fileSize > 50 * 1024 * 1024) { // 50MB limit
+        throw new Error(`File size (${fileSizeMB}MB) exceeds the 50MB limit. Please compress or split your document.`);
+      }
+
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      console.log(`Uploading file: ${file.name} (${fileSizeMB}MB)`);
 
       const { error: uploadError } = await supabase.storage
         .from('reports')
@@ -106,22 +116,36 @@ export const useReports = () => {
           contentType: file.type || undefined,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        
+        // Provide user-friendly error messages
+        if (uploadError.message?.includes('File size')) {
+          throw new Error(`File too large: ${fileSizeMB}MB. Maximum allowed is 50MB.`);
+        } else if (uploadError.message?.includes('storage')) {
+          throw new Error('Storage service temporarily unavailable. Please try again.');
+        } else {
+          throw new Error(`Upload failed: ${uploadError.message}`);
+        }
+      }
 
       // Bucket is private: return a signed URL valid for 7 days
-      const { data: signed } = await supabase.storage
+      const { data: signed, error: signError } = await supabase.storage
         .from('reports')
         .createSignedUrl(fileName, 60 * 60 * 24 * 7);
 
-      if (!signed?.signedUrl) throw new Error('Failed to create file URL');
+      if (signError || !signed?.signedUrl) {
+        console.error('Signed URL creation error:', signError);
+        throw new Error('Failed to create secure file access URL');
+      }
 
+      console.log(`File uploaded successfully: ${file.name}`);
       return signed.signedUrl;
+      
     } catch (error: any) {
-      toast({
-        title: "Error uploading file",
-        description: error.message,
-        variant: "destructive",
-      });
+      console.error('File upload error:', error);
+      
+      // Don't show toast here as it's handled by the calling component
       throw error;
     }
   };
