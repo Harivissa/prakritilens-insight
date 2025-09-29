@@ -25,6 +25,7 @@ import { InteractiveCharts } from './InteractiveCharts';
 import { ESGWeightsCustomizer } from './ESGWeightsCustomizer';
 import { UserRoleManager } from './UserRoleManager';
 import { DarkModeToggle } from './DarkModeToggle';
+import { TrendAnalytics } from './TrendAnalytics';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 
