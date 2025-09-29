@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { ESGReportCard } from '@/components/ESGReportCard';
 import { Upload, FileText, Download, LogOut, BarChart3, Shield, Leaf, Users } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -218,131 +219,19 @@ export const ESGPlatform = () => {
 
             {/* Current Analysis Results */}
             {currentAnalysis && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span className="flex items-center space-x-2">
-                      <BarChart3 className="h-5 w-5" />
-                      <span>ESG Analysis Results</span>
-                    </span>
-                    <Button onClick={() => generateReport(currentAnalysis)}>
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Report
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Overall Score */}
-                  <div className="text-center space-y-2">
-                    <div className="text-4xl font-bold" style={{ color: getScoreColor(currentAnalysis.score).replace('bg-', '') }}>
-                      {currentAnalysis.score}
-                    </div>
-                    <Badge variant="secondary" className="text-sm">
-                      {getScoreLabel(currentAnalysis.score)}
-                    </Badge>
-                    <p className="text-sm text-muted-foreground">Overall ESG Score</p>
-                  </div>
-
-                  {/* ESG Breakdown */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center space-x-2">
-                          <Leaf className="h-4 w-4 text-green-600" />
-                          <span>Environmental</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-green-600">
-                          {currentAnalysis.breakdown.environmental}
-                        </div>
-                        <Progress value={currentAnalysis.breakdown.environmental} className="mt-2" />
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center space-x-2">
-                          <Users className="h-4 w-4 text-blue-600" />
-                          <span>Social</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-blue-600">
-                          {currentAnalysis.breakdown.social}
-                        </div>
-                        <Progress value={currentAnalysis.breakdown.social} className="mt-2" />
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm flex items-center space-x-2">
-                          <Shield className="h-4 w-4 text-purple-600" />
-                          <span>Governance</span>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-2xl font-bold text-purple-600">
-                          {currentAnalysis.breakdown.governance}
-                        </div>
-                        <Progress value={currentAnalysis.breakdown.governance} className="mt-2" />
-                      </CardContent>
-                    </Card>
-                  </div>
-
-                  {/* Analysis Details */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm">Key Analysis</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2 text-sm">
-                          {currentAnalysis.analysis.map((item: string, index: number) => (
-                            <li key={index} className="flex items-start space-x-2">
-                              <span className="text-primary">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm text-destructive">Risks</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2 text-sm">
-                          {currentAnalysis.risks.map((item: string, index: number) => (
-                            <li key={index} className="flex items-start space-x-2">
-                              <span className="text-destructive">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-sm text-success">Opportunities</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ul className="space-y-2 text-sm">
-                          {currentAnalysis.opportunities.map((item: string, index: number) => (
-                            <li key={index} className="flex items-start space-x-2">
-                              <span className="text-success">•</span>
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
+              <ESGReportCard
+                result={{
+                  score: currentAnalysis.score,
+                  breakdown: currentAnalysis.breakdown,
+                  analysis: currentAnalysis.analysis,
+                  risks: currentAnalysis.risks,
+                  opportunities: currentAnalysis.opportunities,
+                  companyName: currentAnalysis.fileName.split('.')[0],
+                  fileName: currentAnalysis.fileName,
+                  generatedAt: new Date().toISOString()
+                }}
+                onDownload={() => generateReport(currentAnalysis)}
+              />
             )}
           </TabsContent>
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Leaf, BarChart3, Shield, Globe, ArrowRight, Star } from 'lucide-react';
-import { AuthPage } from './AuthPage';
+import { AuthPageProfessional } from './AuthPageProfessional';
 
 interface LandingPageProps {
   onGetStarted?: () => void;
@@ -32,7 +32,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps = {}) {
   }
 
   if (showAuth) {
-    return <AuthPage onBack={() => setShowAuth(false)} />;
+    return <AuthPageProfessional onBack={() => setShowAuth(false)} />;
   }
 
   return (
