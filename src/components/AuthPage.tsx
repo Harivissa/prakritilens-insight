@@ -5,24 +5,46 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Leaf, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthPageProps {
-  onLogin: () => void;
+  onLogin?: () => void;
   onBack: () => void;
 }
 
 export function AuthPage({ onLogin, onBack }: AuthPageProps) {
+  const { signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     
-    // Simulate auth process
-    setTimeout(() => {
+    try {
+      const { error } = isSignUp 
+        ? await signUp(email, password)
+        : await signIn(email, password);
+      
+      if (!error && !isSignUp && onLogin) {
+        onLogin();
+      }
+    } finally {
       setIsLoading(false);
-      onLogin();
-    }, 1500);
+    }
   };
 
   return (
@@ -67,7 +89,7 @@ export function AuthPage({ onLogin, onBack }: AuthPageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="login" className="space-y-6">
+            <Tabs value={isSignUp ? "register" : "login"} onValueChange={(value) => setIsSignUp(value === "register")} className="space-y-6">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Sign In</TabsTrigger>
                 <TabsTrigger value="register">Sign Up</TabsTrigger>
@@ -84,6 +106,8 @@ export function AuthPage({ onLogin, onBack }: AuthPageProps) {
                         type="email"
                         placeholder="Enter your email"
                         className="pl-10"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                       />
                     </div>
@@ -97,14 +121,15 @@ export function AuthPage({ onLogin, onBack }: AuthPageProps) {
                         type="password"
                         placeholder="Enter your password"
                         className="pl-10"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                       />
                     </div>
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full" 
-                    variant="premium"
+                    className="w-full gradient-primary" 
                     disabled={isLoading}
                   >
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -115,19 +140,6 @@ export function AuthPage({ onLogin, onBack }: AuthPageProps) {
               <TabsContent value="register">
                 <form onSubmit={handleAuth} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Full Name</Label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="name"
-                        type="text"
-                        placeholder="Enter your full name"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
                     <Label htmlFor="email-register">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -136,6 +148,8 @@ export function AuthPage({ onLogin, onBack }: AuthPageProps) {
                         type="email"
                         placeholder="Enter your email"
                         className="pl-10"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         required
                       />
                     </div>
@@ -147,16 +161,18 @@ export function AuthPage({ onLogin, onBack }: AuthPageProps) {
                       <Input
                         id="password-register"
                         type="password"
-                        placeholder="Create a password"
+                        placeholder="Create a password (min. 6 characters)"
                         className="pl-10"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
+                        minLength={6}
                       />
                     </div>
                   </div>
                   <Button 
                     type="submit" 
-                    className="w-full" 
-                    variant="premium"
+                    className="w-full gradient-primary" 
                     disabled={isLoading}
                   >
                     {isLoading ? "Creating account..." : "Create Account"}

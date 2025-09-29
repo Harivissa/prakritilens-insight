@@ -1,37 +1,20 @@
-import { useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { LandingPage } from '@/components/LandingPage';
-import { AuthPage } from '@/components/AuthPage';
-import { Dashboard } from '@/components/Dashboard';
-
-type AppState = 'landing' | 'auth' | 'dashboard';
+import { ESGPlatform } from '@/components/ESGPlatform';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<AppState>('landing');
+  const { user, loading } = useAuth();
 
-  const handleGetStarted = () => {
-    setCurrentView('auth');
-  };
-
-  const handleLogin = () => {
-    setCurrentView('dashboard');
-  };
-
-  const handleLogout = () => {
-    setCurrentView('landing');
-  };
-
-  const handleBackToLanding = () => {
-    setCurrentView('landing');
-  };
-
-  switch (currentView) {
-    case 'auth':
-      return <AuthPage onLogin={handleLogin} onBack={handleBackToLanding} />;
-    case 'dashboard':
-      return <Dashboard onLogout={handleLogout} />;
-    default:
-      return <LandingPage onGetStarted={handleGetStarted} />;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
   }
+
+  return user ? <ESGPlatform /> : <LandingPage />;
 };
 
 export default Index;

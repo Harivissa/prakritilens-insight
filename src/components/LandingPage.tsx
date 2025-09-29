@@ -2,12 +2,26 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { Leaf, BarChart3, Shield, Globe, ArrowRight, Star } from 'lucide-react';
+import { AuthPage } from './AuthPage';
 
 interface LandingPageProps {
-  onGetStarted: () => void;
+  onGetStarted?: () => void;
 }
 
-export function LandingPage({ onGetStarted }: LandingPageProps) {
+export function LandingPage({ onGetStarted }: LandingPageProps = {}) {
+  const [showAuth, setShowAuth] = useState(false);
+
+  const handleGetStarted = () => {
+    if (onGetStarted) {
+      onGetStarted();
+    } else {
+      setShowAuth(true);
+    }
+  };
+
+  if (showAuth) {
+    return <AuthPage onBack={() => setShowAuth(false)} />;
+  }
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -45,10 +59,10 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button 
-                variant="hero" 
-                size="xl" 
-                onClick={onGetStarted}
-                className="animate-pulse-glow"
+                variant="default" 
+                size="lg" 
+                onClick={handleGetStarted}
+                className="animate-pulse-glow gradient-primary"
               >
                 Get Started Free
                 <ArrowRight className="ml-2" />
@@ -124,7 +138,7 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join leading companies using PrakritiLens for comprehensive sustainability insights
             </p>
-            <Button variant="premium" size="xl" onClick={onGetStarted}>
+            <Button variant="default" size="lg" onClick={handleGetStarted} className="gradient-primary">
               Start Your Analysis
               <ArrowRight className="ml-2" />
             </Button>
