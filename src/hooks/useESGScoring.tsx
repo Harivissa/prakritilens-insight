@@ -1,7 +1,26 @@
 import { useState } from 'react';
 
+// Function to generate deterministic hash from file content
+export const generateContentHash = (text: string): string => {
+  // Normalize text for consistent hashing
+  const normalizedText = text
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[^\w\s]/g, '');
+  
+  // Simple deterministic hash function
+  let hash = 0;
+  for (let i = 0; i < normalizedText.length; i++) {
+    const char = normalizedText.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(16);
+};
+
 // Deterministic ESG scoring algorithm
-export const calculateESGScore = (text: string): { 
+export const calculateESGScore = (text: string): {
   score: number; 
   breakdown: { environmental: number; social: number; governance: number }; 
   analysis: string[];

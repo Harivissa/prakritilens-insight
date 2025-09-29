@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useReports } from '@/hooks/useReports';
-import { useESGScoring } from '@/hooks/useESGScoring';
+import { useESGScoring, generateContentHash } from '@/hooks/useESGScoring';
 import { downloadPDF } from '@/utils/pdfGenerator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,10 +40,14 @@ export const ESGPlatform = () => {
       const fileUrl = await uploadFile(file);
 
       // Save report to database
+      const analysisHash = generateContentHash(analysis.extractedText);
+      
       await saveReport({
         score: analysis.score,
         company_name: file.name.split('.')[0],
         file_name: file.name,
+        file_url: fileUrl,
+        hash: analysisHash,
         analysis_data: {
           breakdown: analysis.breakdown,
           analysis: analysis.analysis,
