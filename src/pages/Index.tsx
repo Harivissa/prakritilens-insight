@@ -1,6 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
-import { ModernLandingPage } from '@/components/ModernLandingPage';
-import { ModernDashboard } from '@/components/ModernDashboard';
+import { ProfessionalLanding } from '@/components/ProfessionalLanding';
+import { ProfessionalDashboard } from '@/components/ProfessionalDashboard';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 const Index = () => {
@@ -14,7 +14,7 @@ const Index = () => {
     );
   }
 
-  return user ? <ModernDashboard /> : <ModernLandingPage />;
+  return user ? <ProfessionalDashboard /> : <ProfessionalLanding />;
 };
 
 export default Index;
