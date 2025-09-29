@@ -9,7 +9,14 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onGetStarted }: LandingPageProps = {}) {
+  // All hooks must be called at the top level - no conditional calls!
   const [showAuth, setShowAuth] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleGetStarted = () => {
     if (onGetStarted) {
@@ -19,18 +26,13 @@ export function LandingPage({ onGetStarted }: LandingPageProps = {}) {
     }
   };
 
-  if (showAuth) {
-    return <AuthPage onBack={() => setShowAuth(false)} />;
-  }
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
+  // Conditional rendering moved to JSX return - no early returns before hooks
   if (isLoading) {
     return <IntroAnimation />;
+  }
+
+  if (showAuth) {
+    return <AuthPage onBack={() => setShowAuth(false)} />;
   }
 
   return (
