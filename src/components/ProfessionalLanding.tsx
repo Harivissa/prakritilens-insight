@@ -73,34 +73,10 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   ];
 
   const stats = [
-    { number: "50K+", label: "Documents Analyzed", icon: Upload },
-    { number: "99.9%", label: "Accuracy Rate", icon: TrendingUp },
-    { number: "500+", label: "Companies Trust Us", icon: Users },
-    { number: "24/7", label: "AI Support", icon: Zap }
-  ];
-
-  const testimonials = [
-    {
-      name: "Sarah Chen",
-      role: "ESG Director at TechCorp",
-      company: "TechCorp Industries",
-      rating: 5,
-      text: "This platform transformed how we analyze ESG data. The AI insights are incredibly accurate and save us hours of manual work."
-    },
-    {
-      name: "Michael Rodriguez", 
-      role: "Sustainability Manager",
-      company: "Green Future Ltd",
-      rating: 5,
-      text: "The document analysis is phenomenal. We can now process hundreds of reports in minutes instead of days."
-    },
-    {
-      name: "Emma Thompson",
-      role: "Chief Financial Officer", 
-      company: "Global Enterprises",
-      rating: 5,
-      text: "Best investment we made this year. The ROI on this platform is incredible - highly recommend to any serious business."
-    }
+    { number: "AI-Powered", label: "Google Gemini Integration", icon: Zap },
+    { number: "Real-Time", label: "ESG Analysis", icon: TrendingUp },
+    { number: "100MB+", label: "File Support", icon: Upload },
+    { number: "Enterprise", label: "Grade Security", icon: Shield }
   ];
 
   return (
@@ -139,9 +115,37 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
-        <div className="container mx-auto max-w-6xl">
+      {/* Hero Section - Futuristic Black Background */}
+      <section className="pt-32 pb-20 px-4 relative overflow-hidden bg-gradient-to-br from-gray-950 via-green-950 to-black">
+        {/* Animated Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(30)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-emerald-400/30 rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                scale: [1, 2, 1],
+                opacity: [0.3, 0.8, 0.3],
+                y: [-20, 20, -20],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Glow Effect */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-3xl" />
+        
+        <div className="container mx-auto max-w-6xl relative z-10">
           <motion.div 
             className="text-center mb-16"
             initial="initial"
@@ -149,8 +153,8 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             variants={staggerContainer}
           >
             <motion.div variants={fadeInUp}>
-              <Badge variant="secondary" className="mb-4 text-sm px-4 py-2">
-                🚀 Trusted by 500+ Companies Worldwide
+              <Badge variant="secondary" className="mb-4 text-sm px-4 py-2 bg-emerald-500/10 text-emerald-300 border-emerald-500/30">
+                🌍 Powered by Google Gemini AI
               </Badge>
             </motion.div>
             
@@ -158,19 +162,19 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               variants={fadeInUp}
               className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
             >
-              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-green-400 bg-clip-text text-transparent animate-pulse">
                 PrakritiLens
               </span>
               <br />
-              <span className="text-foreground">AI-Powered ESG Analytics</span>
+              <span className="text-white">AI-Powered ESG Analytics</span>
             </motion.h1>
             
             <motion.p 
               variants={fadeInUp}
-              className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed"
+              className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed"
             >
-              Transform your ESG reporting with cutting-edge AI technology. Upload documents, 
-              get instant insights, and make data-driven sustainability decisions like never before.
+              Transform your ESG reporting with Google Gemini AI. Upload documents up to 100MB, 
+              get instant insights, and make data-driven sustainability decisions.
             </motion.p>
             
             <motion.div 
@@ -180,37 +184,39 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               <Button 
                 size="lg" 
                 onClick={handleGetStarted}
-                className="text-lg px-8 py-6 shadow-floating hover:shadow-elegant transition-all duration-300 animate-pulse-glow"
+                className="text-lg px-8 py-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:shadow-[0_0_40px_rgba(16,185,129,0.7)] transition-all duration-300"
               >
-                Start Free Trial <ArrowRight className="w-5 h-5 ml-2" />
+                Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
                 onClick={handleWatchDemo}
-                className="text-lg px-8 py-6 transition-smooth hover:bg-muted"
+                className="text-lg px-8 py-6 border-2 border-emerald-500/50 text-white bg-white/5 hover:bg-white/10 transition-smooth backdrop-blur-sm"
               >
-                <Play className="w-5 h-5 mr-2" /> Watch Live Demo
+                <Play className="w-5 h-5 mr-2" /> Watch Demo
               </Button>
             </motion.div>
 
-            {/* Stats Row */}
+            {/* Feature Highlights */}
             <motion.div 
               variants={fadeInUp}
-              className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
+              className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
             >
               {stats.map((stat, index) => (
                 <motion.div 
                   key={stat.label}
-                  className="text-center"
-                  whileHover={{ scale: 1.05 }}
+                  className="text-center backdrop-blur-sm bg-white/5 p-4 rounded-xl border border-emerald-500/20"
+                  whileHover={{ scale: 1.05, borderColor: "rgba(16, 185, 129, 0.5)" }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
-                  <div className="flex justify-center mb-2">
-                    <stat.icon className="w-8 h-8 text-primary" />
+                  <div className="flex justify-center mb-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-lg flex items-center justify-center">
+                      <stat.icon className="w-6 h-6 text-emerald-400" />
+                    </div>
                   </div>
-                  <div className="text-2xl md:text-3xl font-bold text-foreground mb-1">{stat.number}</div>
-                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                  <div className="text-lg font-bold text-emerald-300 mb-1">{stat.number}</div>
+                  <div className="text-xs text-gray-400">{stat.label}</div>
                 </motion.div>
               ))}
             </motion.div>
@@ -274,62 +280,93 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 px-4">
-        <div className="container mx-auto max-w-6xl">
+      {/* About / Founders Section */}
+      <section id="about" className="py-20 px-4 bg-gradient-to-br from-emerald-50 to-teal-50">
+        <div className="container mx-auto max-w-4xl">
           <motion.div 
-            className="text-center mb-16"
+            className="text-center"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Badge variant="secondary" className="mb-4">⭐ Customer Reviews</Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Loved by Industry Leaders
+            <Badge variant="secondary" className="mb-4">👥 Meet the Founders</Badge>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+              Built with Passion for <span className="text-emerald-600">Sustainability</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Join thousands of professionals who trust our platform for their ESG analytics needs.
+            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+              PrakritiLens was created to democratize ESG analytics and make sustainability reporting 
+              accessible to organizations of all sizes.
             </p>
-          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
+            <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
               <motion.div
-                key={testimonial.name}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
               >
-                <Card className="h-full gradient-card border-0 shadow-card hover:shadow-elegant transition-smooth">
-                  <CardHeader>
-                    <div className="flex items-center mb-2">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <CardDescription className="text-base italic">
-                      "{testimonial.text}"
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div>
-                      <div className="font-semibold text-foreground">{testimonial.name}</div>
-                      <div className="text-sm text-muted-foreground">{testimonial.role}</div>
-                      <div className="text-sm text-primary font-medium">{testimonial.company}</div>
-                    </div>
-                  </CardContent>
+                <Card className="gradient-card border-0 shadow-card hover:shadow-elegant transition-smooth text-center p-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <span className="text-3xl font-bold text-white">HV</span>
+                  </div>
+                  <CardTitle className="text-2xl mb-2">Hari Vissa</CardTitle>
+                  <CardDescription className="text-base mb-4">
+                    Lead Developer & Founder
+                  </CardDescription>
+                  <p className="text-sm text-muted-foreground">
+                    Architecting intelligent solutions for a sustainable future
+                  </p>
                 </Card>
               </motion.div>
-            ))}
-          </div>
+
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <Card className="gradient-card border-0 shadow-card hover:shadow-elegant transition-smooth text-center p-8">
+                  <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <span className="text-3xl font-bold text-white">M</span>
+                  </div>
+                  <CardTitle className="text-2xl mb-2">Michelle</CardTitle>
+                  <CardDescription className="text-base mb-4">
+                    Designer & Co-Creator
+                  </CardDescription>
+                  <p className="text-sm text-muted-foreground">
+                    Crafting beautiful experiences that drive meaningful change
+                  </p>
+                </Card>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-hero text-white">
-        <div className="container mx-auto max-w-4xl text-center">
+      <section className="py-20 px-4 bg-gradient-to-br from-emerald-600 to-teal-600 text-white relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-10">
+          {[...Array(15)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-32 h-32 border border-white rounded-full"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                scale: [1, 1.5, 1],
+                opacity: [0.3, 0.1, 0.3],
+              }}
+              transition={{
+                duration: 4 + Math.random() * 2,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: Math.random() * 2,
+              }}
+            />
+          ))}
+        </div>
+        
+        <div className="container mx-auto max-w-4xl text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -337,28 +374,28 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Ready to Transform Your ESG Analytics?
+              Ready to Transform Your ESG Strategy?
             </h2>
             <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-              Join thousands of companies already using our platform to make better, 
-              data-driven sustainability decisions.
+              Start analyzing your ESG performance today with Google Gemini AI. 
+              No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
                 variant="secondary"
                 onClick={handleGetStarted}
-                className="text-lg px-8 py-6 shadow-floating hover:shadow-elegant transition-all duration-300"
+                className="text-lg px-8 py-6 bg-white text-emerald-600 hover:bg-gray-100 shadow-floating hover:shadow-elegant transition-all duration-300"
               >
-                Start Your Free Trial <ArrowRight className="w-5 h-5 ml-2" />
+                Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button 
                 size="lg" 
                 variant="outline"
                 onClick={handleWatchDemo}
-                className="text-lg px-8 py-6 border-white/20 text-white bg-white/10 hover:bg-white/20 transition-smooth"
+                className="text-lg px-8 py-6 border-2 border-white/50 text-white bg-white/10 hover:bg-white/20 transition-smooth backdrop-blur-sm"
               >
-                <Play className="w-5 h-5 mr-2" /> Schedule Demo
+                <Play className="w-5 h-5 mr-2" /> Watch Demo
               </Button>
             </div>
           </motion.div>
@@ -377,7 +414,10 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                 <span className="text-lg font-bold">PrakritiLens</span>
               </div>
               <p className="text-muted-foreground mb-4">
-                The most advanced AI-powered ESG analytics platform trusted by industry leaders worldwide.
+                AI-powered ESG analytics platform built for transparency and sustainability.
+              </p>
+              <p className="text-sm text-emerald-600 font-medium">
+                Powered by Google Gemini
               </p>
             </div>
             
@@ -413,9 +453,16 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
           </div>
           
           <div className="border-t border-border pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center text-muted-foreground">
-              <p>&copy; 2024 PrakritiLens. All rights reserved.</p>
-              <p className="text-sm mt-2 md:mt-0">Made by Hari Vissa and Michelle</p>
+            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+              <p className="text-sm text-muted-foreground">
+                &copy; {new Date().getFullYear()} PrakritiLens. All rights reserved.
+              </p>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-muted-foreground">Made with</span>
+                <span className="text-red-500 text-lg">❤️</span>
+                <span className="text-sm text-muted-foreground">by</span>
+                <span className="text-sm font-semibold text-emerald-600">Hari Vissa & Michelle</span>
+              </div>
             </div>
           </div>
         </div>
