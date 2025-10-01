@@ -19,10 +19,8 @@ interface UserRole {
   user_id: string;
   role: 'admin' | 'analyst' | 'viewer';
   created_at: string;
-  user_profile?: {
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
+  full_name?: string | null;
+  avatar_url?: string | null;
 }
 
 const roleDefinitions = {
@@ -71,14 +69,39 @@ export const UserRoleManager = () => {
     try {
       setLoading(true);
       
-      // Simplified approach - show placeholder until types update
-      console.log('User roles system initializing...');
-      setUserRoles([]);
+      // Fetch user roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (rolesError) throw rolesError;
+
+      // Fetch profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, avatar_url');
+
+      if (profilesError) throw profilesError;
+
+      // Join the data
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      const enrichedRoles = rolesData?.map(role => {
+        const profile = profilesMap.get(role.user_id);
+        return {
+          ...role,
+          full_name: profile?.full_name || null,
+          avatar_url: profile?.avatar_url || null,
+        };
+      }) || [];
+
+      setUserRoles(enrichedRoles);
     } catch (error: any) {
       console.error('Error fetching user roles:', error);
       toast({
-        title: "User Management Loading",
-        description: "User role system is being set up. Please refresh in a moment.",
+        title: "Error Loading Users",
+        description: error.message || "Failed to load user roles.",
+        variant: "destructive",
       });
       setUserRoles([]);
     } finally {
@@ -91,7 +114,7 @@ export const UserRoleManager = () => {
     
     try {
       const { data, error } = await supabase
-        .from('user_roles' as any)
+        .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .maybeSingle();
@@ -102,7 +125,7 @@ export const UserRoleManager = () => {
         return;
       }
       
-      setCurrentUserRole('admin'); // Temporary admin access for testing
+      setCurrentUserRole(data?.role || 'viewer');
     } catch (error) {
       console.error('Error checking user role:', error);
       setCurrentUserRole('viewer');
@@ -112,7 +135,7 @@ export const UserRoleManager = () => {
   const updateUserRole = async (userId: string, newRole: 'admin' | 'analyst' | 'viewer') => {
     try {
       const { error } = await supabase
-        .from('user_roles' as any)
+        .from('user_roles')
         .update({ role: newRole })
         .eq('user_id', userId);
 
@@ -145,7 +168,7 @@ export const UserRoleManager = () => {
 
     try {
       const { error } = await supabase
-        .from('user_roles' as any)
+        .from('user_roles')
         .delete()
         .eq('user_id', userId);
 
@@ -167,7 +190,7 @@ export const UserRoleManager = () => {
   };
 
   const filteredUsers = userRoles.filter(userRole => {
-    const userName = userRole.user_profile?.full_name || 'Unknown User';
+    const userName = userRole.full_name || 'Unknown User';
     const matchesSearch = userName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesRole = selectedRole === 'all' || userRole.role === selectedRole;
     return matchesSearch && matchesRole;
@@ -311,7 +334,7 @@ export const UserRoleManager = () => {
                       </div>
                       <div>
                         <div className="font-semibold">
-                          {userRole.user_profile?.full_name || 'Unknown User'}
+                          {userRole.full_name || 'Unknown User'}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           Added {new Date(userRole.created_at).toLocaleDateString()}
