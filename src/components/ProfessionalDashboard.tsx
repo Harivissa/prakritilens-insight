@@ -18,7 +18,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { useReports } from '@/hooks/useReports';
 import { ProfessionalFileUpload } from './ProfessionalFileUpload';
-import { EnhancedChatBot } from './EnhancedChatBot';
+import { ContextAwareChat } from './ContextAwareChat';
 import { ESGNewsFeed } from './ESGNewsFeed';
 import { EnhancedDetailedReportModal } from './EnhancedDetailedReportModal';
 import { InteractiveCharts } from './InteractiveCharts';
@@ -400,7 +400,7 @@ export const ProfessionalDashboard = () => {
 
           {/* Chat Tab */}
           <TabsContent value="chat">
-            <EnhancedChatBot />
+            <ContextAwareChat />
           </TabsContent>
 
           {/* Reports Tab */}

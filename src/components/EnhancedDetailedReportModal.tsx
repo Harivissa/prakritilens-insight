@@ -40,16 +40,23 @@ interface EnhancedDetailedReportModalProps {
 }
 
 export const EnhancedDetailedReportModal = ({ isOpen, onClose, fileName, reportData }: EnhancedDetailedReportModalProps) => {
-  // Generate mock detailed data based on the score
+  const [activeChartFilter, setActiveChartFilter] = React.useState<'all' | 'environmental' | 'social' | 'governance'>('all');
+  
+  // Generate detailed data based on the score
   const environmentalScore = reportData.breakdown?.environmental || Math.max(10, reportData.score + (Math.random() - 0.5) * 20);
   const socialScore = reportData.breakdown?.social || Math.max(10, reportData.score + (Math.random() - 0.5) * 20);
   const governanceScore = reportData.breakdown?.governance || Math.max(10, reportData.score + (Math.random() - 0.5) * 20);
 
-  const chartData = [
-    { name: 'Environmental', score: environmentalScore, benchmark: 65, target: 80 },
-    { name: 'Social', score: socialScore, benchmark: 68, target: 85 },
-    { name: 'Governance', score: governanceScore, benchmark: 72, target: 90 }
+  const allChartData = [
+    { name: 'Environmental', score: environmentalScore, benchmark: 65, target: 80, color: '#22c55e' },
+    { name: 'Social', score: socialScore, benchmark: 68, target: 85, color: '#3b82f6' },
+    { name: 'Governance', score: governanceScore, benchmark: 72, target: 90, color: '#8b5cf6' }
   ];
+
+  // Filter chart data based on active filter
+  const chartData = activeChartFilter === 'all' 
+    ? allChartData 
+    : allChartData.filter(item => item.name.toLowerCase() === activeChartFilter);
 
   const pieData = [
     { name: 'Environmental', value: environmentalScore, color: '#22c55e' },
@@ -432,6 +439,47 @@ export const EnhancedDetailedReportModal = ({ isOpen, onClose, fileName, reportD
 
               {/* Interactive Charts Tab */}
               <TabsContent value="charts" className="space-y-6">
+                {/* Chart Filters */}
+                <Card className="gradient-card border-0 shadow-card">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span>Interactive Chart Filters</span>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant={activeChartFilter === 'all' ? 'default' : 'outline'}
+                          onClick={() => setActiveChartFilter('all')}
+                        >
+                          All Categories
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={activeChartFilter === 'environmental' ? 'default' : 'outline'}
+                          onClick={() => setActiveChartFilter('environmental')}
+                          className={activeChartFilter === 'environmental' ? 'bg-green-600 hover:bg-green-700' : ''}
+                        >
+                          Environmental
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={activeChartFilter === 'social' ? 'default' : 'outline'}
+                          onClick={() => setActiveChartFilter('social')}
+                          className={activeChartFilter === 'social' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                        >
+                          Social
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={activeChartFilter === 'governance' ? 'default' : 'outline'}
+                          onClick={() => setActiveChartFilter('governance')}
+                          className={activeChartFilter === 'governance' ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                        >
+                          Governance
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                </Card>
                 <div className="grid md:grid-cols-2 gap-6">
                   {/* Bar Chart */}
                   <Card className="gradient-card border-0 shadow-card">
