@@ -69,9 +69,9 @@ export const UserRoleManager = () => {
     try {
       setLoading(true);
       
-      // Fetch user roles
+      // Fetch user roles with type assertion
       const { data: rolesData, error: rolesError } = await supabase
-        .from('user_roles')
+        .from('user_roles' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -84,16 +84,16 @@ export const UserRoleManager = () => {
 
       if (profilesError) throw profilesError;
 
-      // Join the data
+      // Join the data with proper typing
       const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
-      const enrichedRoles = rolesData?.map(role => {
-        const profile = profilesMap.get(role.user_id);
-        return {
-          ...role,
-          full_name: profile?.full_name || null,
-          avatar_url: profile?.avatar_url || null,
-        };
-      }) || [];
+      const enrichedRoles: UserRole[] = (rolesData || []).map((role: any) => ({
+        id: role.id,
+        user_id: role.user_id,
+        role: role.role as 'admin' | 'analyst' | 'viewer',
+        created_at: role.created_at,
+        full_name: profilesMap.get(role.user_id)?.full_name || null,
+        avatar_url: profilesMap.get(role.user_id)?.avatar_url || null,
+      }));
 
       setUserRoles(enrichedRoles);
     } catch (error: any) {
@@ -114,18 +114,18 @@ export const UserRoleManager = () => {
     
     try {
       const { data, error } = await supabase
-        .from('user_roles')
+        .from('user_roles' as any)
         .select('role')
         .eq('user_id', user.id)
-        .maybeSingle();
-
+        .maybeSingle() as { data: { role: string } | null, error: any };
+      
       if (error) {
         console.error('Error checking user role:', error);
         setCurrentUserRole('viewer');
         return;
       }
       
-      setCurrentUserRole(data?.role || 'viewer');
+      setCurrentUserRole((data?.role as 'admin' | 'analyst' | 'viewer') || 'viewer');
     } catch (error) {
       console.error('Error checking user role:', error);
       setCurrentUserRole('viewer');
@@ -135,7 +135,7 @@ export const UserRoleManager = () => {
   const updateUserRole = async (userId: string, newRole: 'admin' | 'analyst' | 'viewer') => {
     try {
       const { error } = await supabase
-        .from('user_roles')
+        .from('user_roles' as any)
         .update({ role: newRole })
         .eq('user_id', userId);
 
@@ -168,7 +168,7 @@ export const UserRoleManager = () => {
 
     try {
       const { error } = await supabase
-        .from('user_roles')
+        .from('user_roles' as any)
         .delete()
         .eq('user_id', userId);
 
