@@ -60,15 +60,15 @@ export const ProfessionalFileUpload = () => {
   const simulateFileProcessing = async (fileData: UploadedFile) => {
     try {
       const fileSize = fileData.file.size;
-      const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB+
+      const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB+ - no restrictions, just for progress display
       
       // Simulate upload progress with adjusted timing for large files
       setUploadedFiles(prev => 
         prev.map(f => f.id === fileData.id ? { ...f, status: 'uploading' } : f)
       );
 
-      const uploadSteps = isLargeFile ? 20 : 10; // More granular progress for large files
-      const uploadDelay = isLargeFile ? 100 : 50; // Slower but more realistic for large files
+      const uploadSteps = isLargeFile ? 30 : 10; // More granular progress for large files
+      const uploadDelay = isLargeFile ? 150 : 50; // Better UX for large files
       
       for (let step = 0; step <= uploadSteps; step++) {
         const progress = (step / uploadSteps) * 100;
@@ -193,31 +193,26 @@ export const ProfessionalFileUpload = () => {
       'text/plain': ['.txt'],
       'text/csv': ['.csv'],
       'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/json': ['.json'],
+      'application/xml': ['.xml'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx']
     },
-    maxSize: 50 * 1024 * 1024, // 50MB - Professional limit for large ESG reports
+    // NO FILE SIZE RESTRICTIONS - Support all file sizes
+    maxSize: undefined,
     multiple: true,
     onDropRejected: (fileRejections) => {
       setIsDragActive(false);
       
-      // Group rejections by type for better error messages
-      const sizeErrors = fileRejections.filter(r => r.errors.some(e => e.code === 'file-too-large'));
+      // Only show errors for file type issues
       const typeErrors = fileRejections.filter(r => r.errors.some(e => e.code === 'file-invalid-type'));
-      
-      if (sizeErrors.length > 0) {
-        const fileNames = sizeErrors.map(r => r.file.name).join(', ');
-        toast({
-          title: 'File Size Limit Exceeded',
-          description: `Files too large: ${fileNames}. Maximum file size is 50MB per file. Please compress or split your document if needed.`,
-          variant: 'destructive',
-        });
-      }
       
       if (typeErrors.length > 0) {
         const fileNames = typeErrors.map(r => r.file.name).join(', ');
         toast({
           title: 'Unsupported File Type',
-          description: `Unsupported files: ${fileNames}. Please upload PDF, DOCX, TXT, CSV, or Excel files only.`,
+          description: `Unsupported files: ${fileNames}. Please upload document files (PDF, DOCX, CSV, Excel, TXT, etc.).`,
           variant: 'destructive',
         });
       }

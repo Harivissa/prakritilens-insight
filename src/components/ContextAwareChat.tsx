@@ -148,7 +148,7 @@ export const ContextAwareChat = () => {
                     <span>PrakritiLens AI Assistant</span>
                     <Badge variant="secondary" className="text-xs">
                       <Sparkles className="w-3 h-3 mr-1" />
-                      Powered by Google Gemini
+                      Powered by OpenAI
                     </Badge>
                   </CardTitle>
                   <CardDescription>
