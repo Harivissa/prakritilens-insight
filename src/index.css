@@ -9,8 +9,11 @@ All colors MUST be HSL. Nature-inspired with professional accents.
 @layer base {
   :root {
     /* Base Colors - Clean & Professional */
-    --background: 0 0% 99%;
+    --background: 0 0% 100%;
     --foreground: 160 15% 8%;
+    
+    /* Landing Page Pure Black */
+    --landing-background: 0 0% 0%;
 
     /* Card & Surface Colors */
     --card: 0 0% 100%;

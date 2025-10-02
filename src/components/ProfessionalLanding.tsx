@@ -80,9 +80,9 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#000000]">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md border-b border-border z-50">
+      <nav className="fixed top-0 w-full bg-[#000000]/80 backdrop-blur-md border-b border-white/10 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <motion.div 
             className="flex items-center space-x-2"
@@ -115,8 +115,8 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         </div>
       </nav>
 
-      {/* Hero Section - Futuristic Black Background */}
-      <section className="pt-32 pb-20 px-4 relative overflow-hidden bg-gradient-to-br from-gray-950 via-green-950 to-black">
+      {/* Hero Section - Pure Black Background */}
+      <section className="pt-32 pb-20 px-4 relative overflow-hidden bg-[#000000]">
         {/* Animated Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(30)].map((_, i) => (
@@ -225,7 +225,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-muted/30">
+      <section id="features" className="py-20 px-4 bg-[#000000]">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             className="text-center mb-16"
@@ -281,7 +281,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* About / Founders Section */}
-      <section id="about" className="py-20 px-4 bg-gradient-to-br from-emerald-50 to-teal-50">
+      <section id="about" className="py-20 px-4 bg-[#000000]">
         <div className="container mx-auto max-w-4xl">
           <motion.div 
             className="text-center"
@@ -341,7 +341,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-emerald-600 to-teal-600 text-white relative overflow-hidden">
+      <section className="py-20 px-4 bg-[#000000] text-white relative overflow-hidden">
         {/* Animated background elements */}
         <div className="absolute inset-0 opacity-10">
           {[...Array(15)].map((_, i) => (
@@ -403,7 +403,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted/50 py-16 px-4">
+      <footer className="bg-[#000000] py-16 px-4 border-t border-white/10">
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
