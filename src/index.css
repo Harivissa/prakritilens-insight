@@ -87,57 +87,57 @@ All colors MUST be HSL. Nature-inspired with professional accents.
   }
 
   .dark {
-    /* Dark Mode - Professional Dark Green Theme */
-    --background: 160 20% 6%;
-    --foreground: 150 30% 92%;
+    /* Dark Mode - Professional Dark Green Theme with High Contrast */
+    --background: 160 20% 10%;
+    --foreground: 150 30% 95%;
 
-    --card: 160 20% 8%;
-    --card-foreground: 150 30% 92%;
+    --card: 160 20% 12%;
+    --card-foreground: 150 30% 96%;
 
-    --popover: 160 20% 8%;
-    --popover-foreground: 150 30% 92%;
+    --popover: 160 20% 12%;
+    --popover-foreground: 150 30% 96%;
 
     --primary: 158 64% 52%;
-    --primary-foreground: 160 20% 6%;
+    --primary-foreground: 0 0% 100%;
     --primary-hover: 158 64% 48%;
 
-    --secondary: 160 15% 15%;
-    --secondary-foreground: 150 30% 92%;
+    --secondary: 160 15% 20%;
+    --secondary-foreground: 150 30% 96%;
 
-    --muted: 160 15% 12%;
-    --muted-foreground: 150 15% 60%;
+    --muted: 160 15% 18%;
+    --muted-foreground: 150 15% 70%;
 
     --accent: 142 76% 46%;
-    --accent-foreground: 160 20% 6%;
+    --accent-foreground: 0 0% 100%;
 
     --success: 138 76% 56%;
-    --success-foreground: 160 20% 6%;
+    --success-foreground: 0 0% 100%;
     --warning: 43 96% 66%;
-    --warning-foreground: 160 20% 6%;
+    --warning-foreground: 0 0% 100%;
     --destructive: 0 84% 70%;
-    --destructive-foreground: 160 20% 6%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 160 15% 20%;
-    --input: 160 15% 20%;
+    --border: 160 15% 25%;
+    --input: 160 15% 25%;
     --ring: 158 64% 52%;
 
     /* Dark Mode Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(158 64% 52%), hsl(142 76% 46%));
     --gradient-hero: linear-gradient(135deg, hsl(158 64% 52%) 0%, hsl(142 76% 46%) 50%, hsl(120 60% 55%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(160 20% 8%) 0%, hsl(160 15% 12%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(160 20% 12%) 0%, hsl(160 15% 15%) 100%);
 
-    /* Dark Shadows */
-    --shadow-elegant: 0 4px 20px hsl(160 20% 3% / 0.4);
-    --shadow-card: 0 2px 10px hsl(160 20% 3% / 0.3);
-    --shadow-floating: 0 8px 30px hsl(158 64% 52% / 0.2);
+    /* Dark Shadows with better visibility */
+    --shadow-elegant: 0 4px 20px hsl(0 0% 0% / 0.5);
+    --shadow-card: 0 2px 10px hsl(0 0% 0% / 0.4);
+    --shadow-floating: 0 8px 30px hsl(158 64% 52% / 0.3);
 
-    --sidebar-background: 160 20% 8%;
-    --sidebar-foreground: 150 30% 92%;
+    --sidebar-background: 160 20% 12%;
+    --sidebar-foreground: 150 30% 95%;
     --sidebar-primary: 158 64% 52%;
-    --sidebar-primary-foreground: 160 20% 6%;
-    --sidebar-accent: 160 15% 15%;
-    --sidebar-accent-foreground: 150 30% 92%;
-    --sidebar-border: 160 15% 20%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 160 15% 20%;
+    --sidebar-accent-foreground: 150 30% 95%;
+    --sidebar-border: 160 15% 25%;
     --sidebar-ring: 158 64% 52%;
   }
 }
