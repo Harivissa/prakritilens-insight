@@ -26,8 +26,10 @@ import { ESGWeightsCustomizer } from './ESGWeightsCustomizer';
 import { UserRoleManager } from './UserRoleManager';
 import { DarkModeToggle } from './DarkModeToggle';
 import { TrendAnalytics } from './TrendAnalytics';
+import { VerificationBanner } from './VerificationBanner';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
+import { supabase } from '@/integrations/supabase/client';
 
 export const ProfessionalDashboard = () => {
   const { user, signOut } = useAuth();
@@ -38,6 +40,18 @@ export const ProfessionalDashboard = () => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [esgWeights, setESGWeights] = useState({ environmental: 40, social: 35, governance: 25 });
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
+
+  // Check email verification status
+  useEffect(() => {
+    const checkVerification = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsEmailVerified(user.email_confirmed_at !== null);
+      }
+    };
+    checkVerification();
+  }, []);
 
   // Calculate key metrics
   const totalReports = reports.length;
@@ -132,9 +146,9 @@ export const ProfessionalDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#FFFFFF]">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-[#FFFFFF]/95 backdrop-blur-md border-b border-border shadow-sm">
+      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
@@ -169,8 +183,11 @@ export const ProfessionalDashboard = () => {
       </header>
 
       <div className="container mx-auto px-4 py-6">
+        {/* Verification Banner */}
+        {!isEmailVerified && <VerificationBanner />}
+        
         {/* Welcome Section */}
-        <motion.div 
+        <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -320,20 +337,21 @@ export const ProfessionalDashboard = () => {
                             </div>
                           </div>
                           <div className="flex items-center space-x-3">
-                            <Badge variant={getScoreBadgeVariant(report.score || 0)}>
-                              {report.score?.toFixed(1) || 'N/A'}
+                            <Badge variant={getScoreBadgeVariant(report.score || 0)} className="text-sm px-3 py-1">
+                              Score: {report.score?.toFixed(1) || 'N/A'}
                             </Badge>
                             <Button 
-                              variant="ghost" 
+                              variant="default" 
                               size="sm"
                               onClick={() => handleViewReport(report)}
-                              title="View detailed report"
+                              className="gradient-primary"
                             >
-                              <Eye className="w-4 h-4" />
+                              View Detailed Report
+                              <ChevronRight className="w-4 h-4 ml-1" />
                             </Button>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" title="Actions">
+                                <Button variant="ghost" size="sm" title="More actions">
                                   <MoreVertical className="w-4 h-4" />
                                 </Button>
                               </DropdownMenuTrigger>

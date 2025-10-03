@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Leaf, Mail, Lock, ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import { SignUpSuccessModal } from './SignUpSuccessModal';
 
 interface AuthPageProps {
   onLogin?: () => void;
@@ -24,6 +25,8 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [signUpEmail, setSignUpEmail] = useState('');
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,7 +70,13 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
       
       if (error) {
         setErrors({ general: error.message });
-      } else if (!isSignUp && onLogin) {
+      } else if (isSignUp) {
+        // Show success modal for sign up
+        setSignUpEmail(email);
+        setShowSuccessModal(true);
+        setEmail('');
+        setPassword('');
+      } else if (onLogin) {
         onLogin();
       }
     } finally {
@@ -181,7 +190,14 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-hero p-6">
+    <>
+      <SignUpSuccessModal 
+        isOpen={showSuccessModal} 
+        onClose={() => setShowSuccessModal(false)}
+        email={signUpEmail}
+      />
+      
+      <div className="min-h-screen flex items-center justify-center gradient-hero p-6">
       <div className="absolute inset-0 opacity-10">
         {[...Array(15)].map((_, i) => (
           <div
@@ -390,5 +406,6 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
         </Card>
       </div>
     </div>
+    </>
   );
-}
+};

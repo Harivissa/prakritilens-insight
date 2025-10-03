@@ -297,7 +297,7 @@ export const ProfessionalFileUpload = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
-        <Card className="gradient-card border-0 shadow-card">
+        <Card className="border-2 border-dashed border-gray-300 hover:border-primary/70 transition-all duration-300 bg-white hover:bg-gray-50/50">
           <CardContent className="p-8">
             <div
               {...getRootProps()}

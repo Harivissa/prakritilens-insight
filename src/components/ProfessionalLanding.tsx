@@ -82,7 +82,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   return (
     <div className="min-h-screen bg-[#000000]">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-[#000000]/80 backdrop-blur-md border-b border-white/10 z-50">
+      <nav className="fixed top-0 w-full bg-[#000000] border-b border-white/10 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <motion.div 
             className="flex items-center space-x-2"
