@@ -146,15 +146,15 @@ export const ProfessionalDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
               <Globe className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-xl font-bold">PrakritiLens</h1>
+            <h1 className="text-xl font-bold text-foreground">PrakritiLens</h1>
             <Badge variant="secondary" className="hidden md:inline-flex">Dashboard</Badge>
           </div>
           
@@ -163,19 +163,19 @@ export const ProfessionalDashboard = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input 
                 placeholder="Search reports..." 
-                className="pl-10 w-64"
+                className="pl-10 w-64 bg-background text-foreground"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-foreground hover:bg-muted">
               <Bell className="w-4 h-4" />
             </Button>
             <DarkModeToggle />
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="text-foreground hover:bg-muted">
               <Settings className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={signOut}>
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-foreground hover:bg-muted">
               <LogOut className="w-4 h-4" />
             </Button>
           </div>
