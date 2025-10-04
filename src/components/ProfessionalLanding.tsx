@@ -304,46 +304,44 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
-                className="relative"
+                className="relative group"
               >
-                {/* Gradient glow behind the card */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-orange-500/30 rounded-2xl blur-xl opacity-50" />
+                {/* Flowing multi-color gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500 rounded-3xl opacity-60 blur-2xl group-hover:opacity-80 transition-opacity duration-500" />
                 
                 {/* Frosted glass card */}
-                <div className="relative bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.5)]">
-                    <span className="text-3xl font-bold text-white">HV</span>
+                <div className="relative bg-gradient-to-br from-gray-900/80 via-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-10 text-center overflow-hidden">
+                  {/* Inner gradient glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-orange-500/10 rounded-3xl" />
+                  
+                  <div className="relative z-10">
+                    <h3 className="text-4xl font-bold text-white mb-3">Hari Vissa</h3>
+                    <p className="text-lg text-gray-300">
+                      Lead Developer & Founder
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Hari Vissa</h3>
-                  <p className="text-base text-gray-400 mb-4">
-                    Lead Developer & Founder
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Architecting intelligent solutions for a sustainable future
-                  </p>
                 </div>
               </motion.div>
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
-                className="relative"
+                className="relative group"
               >
-                {/* Gradient glow behind the card */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-blue-500/30 rounded-2xl blur-xl opacity-50" />
+                {/* Flowing multi-color gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 rounded-3xl opacity-60 blur-2xl group-hover:opacity-80 transition-opacity duration-500" />
                 
                 {/* Frosted glass card */}
-                <div className="relative bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.5)]">
-                    <span className="text-3xl font-bold text-white">M</span>
+                <div className="relative bg-gradient-to-br from-gray-900/80 via-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-10 text-center overflow-hidden">
+                  {/* Inner gradient glow effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-blue-500/10 rounded-3xl" />
+                  
+                  <div className="relative z-10">
+                    <h3 className="text-4xl font-bold text-white mb-3">Michelle</h3>
+                    <p className="text-lg text-gray-300">
+                      Designer & Co-Creator
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">Michelle</h3>
-                  <p className="text-base text-gray-400 mb-4">
-                    Designer & Co-Creator
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Crafting beautiful experiences that drive meaningful change
-                  </p>
                 </div>
               </motion.div>
             </div>
