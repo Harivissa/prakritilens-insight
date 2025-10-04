@@ -148,7 +148,7 @@ export const ContextAwareChat = () => {
                     <span>PrakritiLens AI Assistant</span>
                     <Badge variant="secondary" className="text-xs">
                       <Sparkles className="w-3 h-3 mr-1" />
-                      Powered by OpenAI
+                      AI Powered
                     </Badge>
                   </CardTitle>
                   <CardDescription>
@@ -383,7 +383,7 @@ export const ContextAwareChat = () => {
             <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
               <div className="flex items-center space-x-2">
                 <Sparkles className="w-3 h-3" />
-                <span>Powered by Google Gemini • {reports.length > 0 ? 'Context-aware mode active' : 'Upload reports for personalized insights'}</span>
+                <span>Powered by OpenAI • {reports.length > 0 ? 'Context-aware mode active' : 'Upload reports for personalized insights'}</span>
               </div>
               <div>
                 Press Shift+Enter for new line

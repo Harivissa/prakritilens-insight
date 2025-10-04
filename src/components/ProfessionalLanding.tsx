@@ -154,7 +154,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
           >
             <motion.div variants={fadeInUp}>
               <Badge variant="secondary" className="mb-4 text-sm px-4 py-2 bg-emerald-500/10 text-emerald-300 border-emerald-500/30">
-                🌍 Powered by OpenAI
+                🌍 AI-Powered ESG Analytics
               </Badge>
             </motion.div>
             

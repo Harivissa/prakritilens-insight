@@ -91,241 +91,227 @@ export const ProfessionalChat = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-12rem)] flex flex-col space-y-4">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <Card className="gradient-card border-0 shadow-card">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <Bot className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="flex items-center space-x-2">
-                    <span>PrakritiLens AI Assistant</span>
-                    <Badge variant="secondary" className="text-xs">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      AI Powered
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    Ask me anything about ESG, sustainability, and your reports
-                  </CardDescription>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={handleClearChat}>
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Clear Chat
-                </Button>
-              </div>
+    <div className="h-[calc(100vh-12rem)] flex flex-col">
+      {/* Modern Chat Container */}
+      <div className="flex-1 flex flex-col bg-background rounded-3xl shadow-elegant p-6 space-y-6">
+
+        {/* Welcome Message */}
+        {chats.length === 0 && !loading && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="text-center py-12"
+          >
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-elegant">
+              <Bot className="w-10 h-10 text-white" />
             </div>
-          </CardHeader>
-        </Card>
-      </motion.div>
+            <h2 className="text-3xl font-bold mb-3">
+              Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {user?.email?.split('@')[0] || 'User'}
+            </h2>
+            <p className="text-xl mb-2">
+              What's on <span className="text-purple-500 font-semibold">your mind</span>?
+            </p>
+            <p className="text-sm text-muted-foreground mb-8">
+              AI is capable of make a mistake. Consider checking important information.
+            </p>
+            
+            {/* Quick Action Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto mb-8">
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={() => handleSampleQuestion("Analyze my latest ESG report")}
+                className="p-4 bg-card hover:bg-muted rounded-2xl transition-smooth border border-border text-left group"
+              >
+                <FileText className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-medium">Analyze Report</div>
+              </motion.button>
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.05 }}
+                onClick={() => handleSampleQuestion("What are ESG best practices?")}
+                className="p-4 bg-card hover:bg-muted rounded-2xl transition-smooth border border-border text-left group"
+              >
+                <BarChart3 className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-medium">ESG Insights</div>
+              </motion.button>
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 }}
+                onClick={() => handleSampleQuestion("Show sustainability trends")}
+                className="p-4 bg-card hover:bg-muted rounded-2xl transition-smooth border border-border text-left group"
+              >
+                <TrendingUp className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-medium">Trends</div>
+              </motion.button>
+              <motion.button
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.15 }}
+                onClick={() => handleSampleQuestion("Help me improve my score")}
+                className="p-4 bg-card hover:bg-muted rounded-2xl transition-smooth border border-border text-left group"
+              >
+                <HelpCircle className="w-5 h-5 text-primary mb-2 group-hover:scale-110 transition-transform" />
+                <div className="text-xs font-medium">Get Help</div>
+              </motion.button>
+            </div>
 
-      {/* Chat Messages */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="flex-1"
-      >
-        <Card className="gradient-card border-0 shadow-card h-full">
-          <CardContent className="p-0 h-full">
-            <ScrollArea ref={scrollAreaRef} className="h-full p-6">
-              <div className="space-y-6">
-                {/* Welcome Message */}
-                {chats.length === 0 && !loading && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    className="text-center py-8"
-                  >
-                    <div className="w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Bot className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Welcome to PrakritiLens AI</h3>
-                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                      I'm your intelligent ESG assistant, powered by advanced AI. I can help you analyze 
-                      sustainability reports, understand ESG trends, and provide actionable insights for 
-                      your business's environmental and social impact.
-                    </p>
-                    
-                    {/* Sample Questions */}
-                    <div className="grid gap-2 max-w-2xl mx-auto">
-                      <h4 className="text-sm font-medium text-muted-foreground mb-3">Try asking:</h4>
-                      <div className="grid md:grid-cols-2 gap-2">
-                        {sampleQuestions.map((question, index) => (
-                          <motion.button
-                            key={index}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: index * 0.1 }}
-                            onClick={() => handleSampleQuestion(question)}
-                            className="p-3 text-sm text-left bg-muted/50 hover:bg-muted rounded-lg transition-smooth border border-border hover:border-primary/20"
-                          >
-                            <HelpCircle className="w-4 h-4 text-primary mr-2 inline" />
-                            {question}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Loading State */}
-                {loading && (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="flex items-center space-x-2 text-muted-foreground">
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Loading chat history...</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Chat Messages */}
-                <AnimatePresence>
-                  {chats.map((chat, index) => (
-                    <motion.div
-                      key={chat.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="space-y-4"
-                    >
-                      {/* User Message */}
-                      <div className="flex justify-end">
-                        <div className="flex items-start space-x-3 max-w-[80%]">
-                          <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-sm px-4 py-3">
-                            <p className="text-sm">{chat.message}</p>
-                            <div className="flex items-center justify-end mt-2 text-xs opacity-70">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {formatTimestamp(chat.created_at)}
-                            </div>
-                          </div>
-                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <User className="w-4 h-4 text-primary" />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* AI Response */}
-                      <div className="flex justify-start">
-                        <div className="flex items-start space-x-3 max-w-[80%]">
-                          <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
-                            <Bot className="w-4 h-4 text-white" />
-                          </div>
-                          <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
-                            <p className="text-sm leading-relaxed whitespace-pre-wrap">{chat.response}</p>
-                            <div className="flex items-center justify-between mt-3">
-                              <div className="flex items-center text-xs text-muted-foreground">
-                                <Clock className="w-3 h-3 mr-1" />
-                                {formatTimestamp(chat.created_at)}
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                  <Copy className="w-3 h-3" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                  <ThumbsUp className="w-3 h-3" />
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                  <ThumbsDown className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {/* Typing Indicator */}
-                {(sending || isTyping) && (
-                  <motion.div
+            {/* Sample Questions */}
+            <div className="max-w-2xl mx-auto">
+              <h4 className="text-sm font-medium text-muted-foreground mb-3 text-center">Or try these questions:</h4>
+              <div className="grid gap-2">
+                {sampleQuestions.slice(0, 3).map((question, index) => (
+                  <motion.button
+                    key={index}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex justify-start"
+                    transition={{ duration: 0.3, delay: 0.2 + index * 0.05 }}
+                    onClick={() => handleSampleQuestion(question)}
+                    className="p-3 text-sm text-left bg-muted/30 hover:bg-muted/50 rounded-xl transition-smooth border border-border/50"
                   >
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center flex-shrink-0">
+                    {question}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex items-center space-x-2 text-muted-foreground">
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              <span>Loading chat history...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Chat Messages */}
+        <ScrollArea ref={scrollAreaRef} className="flex-1 px-4">
+          <div className="space-y-6 pb-6">
+            <AnimatePresence>
+              {chats.map((chat, index) => (
+                <motion.div
+                  key={chat.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="space-y-4"
+                >
+                  {/* User Message */}
+                  <div className="flex justify-end">
+                    <div className="flex items-start space-x-3 max-w-[75%]">
+                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl rounded-tr-sm px-5 py-3 shadow-md">
+                        <p className="text-sm leading-relaxed">{chat.message}</p>
+                        <div className="flex items-center justify-end mt-2 text-xs opacity-80">
+                          <Clock className="w-3 h-3 mr-1" />
+                          {formatTimestamp(chat.created_at)}
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Response */}
+                  <div className="flex justify-start">
+                    <div className="flex items-start space-x-3 max-w-[75%]">
+                      <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
                         <Bot className="w-4 h-4 text-white" />
                       </div>
-                      <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3">
-                        <div className="flex items-center space-x-1">
-                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-5 py-3 shadow-sm">
+                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{chat.response}</p>
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {formatTimestamp(chat.created_at)}
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted">
+                              <Copy className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted">
+                              <ThumbsUp className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted">
+                              <ThumbsDown className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </motion.div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
-      {/* Message Input */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-      >
-        <Card className="gradient-card border-0 shadow-card">
-          <CardContent className="p-4">
-            <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
-              <div className="flex-1">
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Ask me anything about ESG, sustainability, climate action, or your reports..."
-                  className="min-h-[60px] max-h-32 resize-none border-0 focus-visible:ring-1 focus-visible:ring-primary"
-                  disabled={sending}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage(e);
-                    }
-                  }}
-                />
-              </div>
-              <Button 
-                type="submit" 
-                disabled={!message.trim() || sending}
-                className="shadow-elegant"
+            {/* Typing Indicator */}
+            {(sending || isTyping) && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex justify-start"
               >
-                {sending ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </form>
-            
-            <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-              <div className="flex items-center space-x-2">
-                <Zap className="w-3 h-3" />
-                <span>Powered by PrakritiLens AI • Real-time insights</span>
-              </div>
-              <div>
-                Press Shift+Enter for new line
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                    <Bot className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="bg-card border border-border rounded-2xl rounded-tl-sm px-5 py-3 shadow-sm">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {/* Message Input */}
+        <div className="px-4 pt-4 border-t border-border/50">
+          <form onSubmit={handleSendMessage} className="flex items-center space-x-3 bg-muted/30 rounded-2xl p-2 border border-border/50">
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Ask me anything about ESG, sustainability, climate action..."
+              className="min-h-[50px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+              disabled={sending}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e);
+                }
+              }}
+            />
+            <Button 
+              type="submit" 
+              disabled={!message.trim() || sending}
+              size="sm"
+              className="rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-md h-10 w-10 p-0 flex-shrink-0"
+            >
+              {sending ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </Button>
+          </form>
+          
+          <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground">
+            <Sparkles className="w-3 h-3 mr-1" />
+            <span>Powered by OpenAI</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
