@@ -236,10 +236,10 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
           >
             <Badge variant="secondary" className="mb-4">✨ Powerful Features</Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-4">
-              Everything You Need for 
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> ESG Excellence</span>
+              <span className="text-white">Everything You Need for </span>
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">ESG Excellence</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
               Our comprehensive platform provides all the tools you need to excel in ESG reporting and analysis.
             </p>
           </motion.div>
@@ -292,7 +292,8 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
           >
             <Badge variant="secondary" className="mb-4">👥 Meet the Founders</Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Built with Passion for <span className="text-emerald-600">Sustainability</span>
+              <span className="text-white">Built with Passion for </span>
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Sustainability</span>
             </h2>
             <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
               PrakritiLens was created to democratize ESG analytics and make sustainability reporting 
@@ -303,37 +304,47 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
+                className="relative"
               >
-                <Card className="gradient-card border-0 shadow-card hover:shadow-elegant transition-smooth text-center p-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                {/* Gradient glow behind the card */}
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-purple-500/30 to-orange-500/30 rounded-2xl blur-xl opacity-50" />
+                
+                {/* Frosted glass card */}
+                <div className="relative bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.5)]">
                     <span className="text-3xl font-bold text-white">HV</span>
                   </div>
-                  <CardTitle className="text-2xl mb-2">Hari Vissa</CardTitle>
-                  <CardDescription className="text-base mb-4">
+                  <h3 className="text-2xl font-bold text-white mb-2">Hari Vissa</h3>
+                  <p className="text-base text-gray-400 mb-4">
                     Lead Developer & Founder
-                  </CardDescription>
-                  <p className="text-sm text-muted-foreground">
+                  </p>
+                  <p className="text-sm text-gray-500">
                     Architecting intelligent solutions for a sustainable future
                   </p>
-                </Card>
+                </div>
               </motion.div>
 
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
+                className="relative"
               >
-                <Card className="gradient-card border-0 shadow-card hover:shadow-elegant transition-smooth text-center p-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                {/* Gradient glow behind the card */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-pink-500/30 to-blue-500/30 rounded-2xl blur-xl opacity-50" />
+                
+                {/* Frosted glass card */}
+                <div className="relative bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center shadow-[0_0_20px_rgba(20,184,166,0.5)]">
                     <span className="text-3xl font-bold text-white">M</span>
                   </div>
-                  <CardTitle className="text-2xl mb-2">Michelle</CardTitle>
-                  <CardDescription className="text-base mb-4">
+                  <h3 className="text-2xl font-bold text-white mb-2">Michelle</h3>
+                  <p className="text-base text-gray-400 mb-4">
                     Designer & Co-Creator
-                  </CardDescription>
-                  <p className="text-sm text-muted-foreground">
+                  </p>
+                  <p className="text-sm text-gray-500">
                     Crafting beautiful experiences that drive meaningful change
                   </p>
-                </Card>
+                </div>
               </motion.div>
             </div>
           </motion.div>
@@ -458,10 +469,8 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                 &copy; {new Date().getFullYear()} PrakritiLens. All rights reserved.
               </p>
               <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Made with</span>
-                <span className="text-red-500 text-lg">❤️</span>
-                <span className="text-sm text-muted-foreground">by</span>
-                <span className="text-sm font-semibold text-emerald-600">Hari Vissa & Michelle</span>
+                <span className="text-sm text-gray-400">Made by</span>
+                <span className="text-sm font-semibold text-emerald-400">Hari Vissa & Michelle</span>
               </div>
             </div>
           </div>
