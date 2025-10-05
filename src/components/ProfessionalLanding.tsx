@@ -382,10 +382,10 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-100">
               Ready to Transform Your ESG Strategy?
             </h2>
-            <p className="text-xl mb-8 text-gray-200 max-w-2xl mx-auto">
+            <p className="text-xl mb-8 text-gray-100 max-w-2xl mx-auto">
               Start analyzing your ESG performance today with Google Gemini AI. 
               No credit card required.
             </p>
