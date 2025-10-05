@@ -186,33 +186,55 @@ export const ProfessionalDashboard = () => {
         {/* Verification Banner */}
         {!isEmailVerified && <VerificationBanner />}
         
-        {/* Welcome Section */}
+        {/* Hero Intro Section */}
         <motion.div
-          className="mb-8"
+          className="mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 p-8 md:p-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Welcome back, {profile?.full_name || user?.email?.split('@')[0] || 'User'}
-              </h2>
-              <p className="text-muted-foreground">
-                Here's your ESG analytics overview for today
-              </p>
-            </div>
-            <div className="hidden md:flex items-center space-x-2">
-              <Button variant="outline" size="sm">
-                <RefreshCw className="w-4 h-4 mr-2" />
-                Refresh Data
+          {/* Content */}
+          <div className="relative z-10 max-w-2xl">
+            <motion.h1 
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              PrakritiLens ESG Platform
+            </motion.h1>
+            <motion.p 
+              className="text-lg md:text-xl text-muted-foreground mb-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              Invest in companies rated for their impact on environment, social, and governance issues.
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="flex items-center space-x-4"
+            >
+              <Button 
+                size="lg" 
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-6 text-lg rounded-full shadow-lg"
+                onClick={() => setActiveTab('upload')}
+              >
+                Get Started
               </Button>
-              <Button variant="outline" size="sm">
-                <Calendar className="w-4 h-4 mr-2" />
-                {new Date().toLocaleDateString()}
-              </Button>
-            </div>
+              <div className="hidden md:flex items-center space-x-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </div>
+            </motion.div>
           </div>
+
+          {/* Decorative gradient orbs */}
+          <div className="absolute -right-20 -top-20 w-64 h-64 bg-emerald-400/30 rounded-full blur-3xl" />
+          <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-teal-400/30 rounded-full blur-3xl" />
+          <div className="absolute right-1/3 bottom-0 w-56 h-56 bg-green-400/20 rounded-full blur-3xl" />
         </motion.div>
 
         {/* Main Tabs */}

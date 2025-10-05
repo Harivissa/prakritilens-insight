@@ -426,7 +426,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                 AI-powered ESG analytics platform built for transparency and sustainability.
               </p>
               <p className="text-sm text-emerald-600 font-medium">
-                Powered by Google Gemini
+                Powered by OpenAI
               </p>
             </div>
             
