@@ -196,12 +196,12 @@ export const ProfessionalDashboard = () => {
           {/* Content */}
           <div className="relative z-10 max-w-2xl">
             <motion.h1 
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4"
+              className="text-3xl md:text-4xl font-bold text-foreground mb-2"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              PrakritiLens ESG Platform
+              Welcome back, {profile?.full_name || user?.email?.split('@')[0] || 'User'}
             </motion.h1>
             <motion.p 
               className="text-lg md:text-xl text-muted-foreground mb-6"
@@ -209,7 +209,7 @@ export const ProfessionalDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              Invest in companies rated for their impact on environment, social, and governance issues.
+              Here's your ESG analytics overview for today
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 10 }}
