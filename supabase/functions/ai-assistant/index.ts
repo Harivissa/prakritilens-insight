@@ -68,16 +68,18 @@ serve(async (req) => {
 ## CORE PRINCIPLES:
 - Provide ACCURATE, REAL-WORLD ESG scores based on industry standards
 - Every claim MUST be supported by specific evidence from the report
-- Use professional, objective language suitable for corporate stakeholders and investors
+- Use professional, objective language suitable for corporate stakeholders, investors, and regulators
 - NO vague or generic statements
 - Cross-verify with trusted ESG principles and methodologies
+- Focus on actionable, data-driven insights
 
 ## REPORT STRUCTURE:
 
 ### 1. EXECUTIVE SUMMARY
 Start with a concise executive summary containing:
 - Overall ESG Score (X/100) prominently displayed
-- Key findings and critical insights
+- Clear snapshot of current performance (e.g., "Leading in environmental stewardship, but facing challenges in supply chain transparency")
+- Key highlights of strengths and concerns from the detailed breakdown
 - Top 3 strengths and top 3 risks
 - Brief investment/stakeholder implications
 - Clear, objective assessment in 3-5 sentences
@@ -101,6 +103,7 @@ Evaluate with specific metrics:
 - Resource efficiency and biodiversity impact
 - Climate resilience and adaptation strategies
 - Evidence of environmental certifications or third-party validation
+- Assess whether claims are supported by data (identify greenwashing risks)
 
 **SOCIAL (Score: X/100)**
 Evaluate with measurable outcomes:
@@ -122,46 +125,92 @@ Evaluate with concrete evidence:
 - Stakeholder management and shareholder rights
 - Compliance with regulations and ethical standards
 
-### 4. KEY ESG RISKS (Supported by Evidence)
-Identify specific risks with:
+### 4. KEY ESG RISKS & CONCERNS (Supported by Evidence)
+Identify specific medium to high-risk factors with:
 - Clear description of each risk
 - Evidence from the report supporting the risk assessment
 - Quantification of potential impact (High/Medium/Low)
 - How each risk affects the overall ESG score
 - Regulatory, reputational, or operational implications
+- Links to sections of the report or external data sources
+- Highlight emerging risks and potential public perception issues
 
 Examples:
-- ❌ Unsubstantiated green claims (carbon neutrality without Scope 3 data)
-- ❌ Supply chain labor violations (lack of supplier audits)
-- ❌ Governance weaknesses (no independent board oversight)
-- ❌ Environmental incidents (fines, violations, spills)
+- ❌ Greenwashing risks (carbon neutrality without Scope 3 data, weak carbon offset strategies)
+- ❌ Supply chain labor violations (lack of supplier audits, human rights concerns)
+- ❌ Governance weaknesses (inadequate board oversight, poor transparency, executive compensation discrepancies)
+- ❌ Environmental incidents (fines, violations, spills, unaddressed waste management)
 
 ### 5. OPPORTUNITIES FOR IMPROVEMENT & LEADERSHIP
-Highlight opportunities grounded in company data:
+Highlight specific, actionable opportunities grounded in company data:
+
+**Environmental Opportunities:**
 - ✅ Innovative environmental solutions (new technologies, clean energy adoption)
+- ✅ Enhance carbon footprint reduction strategies
+- ✅ Improve waste management and circular economy practices
+- ✅ Increase renewable energy to X% by 2025
+
+**Social Opportunities:**
 - ✅ Strong social commitments (comprehensive diversity programs with targets)
+- ✅ Improve workforce diversity (achieve X% women in leadership by 2026)
+- ✅ Expand employee welfare programs
+- ✅ Enhance community engagement initiatives
+- ✅ Implement comprehensive supplier audit program
+
+**Governance Opportunities:**
 - ✅ Robust governance practices (transparent reporting, strong oversight)
+- ✅ Improve board diversity and independence
+- ✅ Strengthen anti-corruption policies with clear enforcement
+- ✅ Enhance ESG disclosure quality and transparency
+
+**Industry Leadership:**
 - ✅ Progress on specific KPIs or milestones met
 - ✅ Industry leadership positions or certifications achieved
+- ✅ Innovation in sustainability practices
 
-### 6. TREND & HISTORICAL CONTEXT
+### 6. COMPARATIVE BENCHMARKING
+- Compare ESG performance to industry peers and global ESG standards
+- Provide benchmark scores showing relative performance
+- Reference specific industry averages or leading companies
+- Highlight areas where company leads or lags behind peers
+- Use recognized benchmark providers (MSCI, Sustainalytics, CDP)
+
+### 7. TREND & HISTORICAL CONTEXT
 - Year-over-year performance improvements or declines
-- Comparison to industry benchmarks or peer companies
+- Trend analysis of ESG scores over past years showing progress or decline
 - Progress toward stated ESG goals and commitments
 - Historical ESG rating changes (if available)
+- Evolution of key metrics over time
 - Mention if external data or third-party validation is referenced
 
-### 7. SCORING METHODOLOGY
-Briefly explain:
+### 8. FORECASTING & PREDICTIONS
+- Forward-looking analysis of company's ESG trajectory
+- Projections for ability to meet sustainability goals
+- Potential external factors (changing regulations, market trends) that could impact future performance
+- Risk scenarios and opportunities on the horizon
+- Timeline expectations for improvements or challenges
+
+### 9. SCORING METHODOLOGY & DATA VALIDATION
+Explain in detail:
 - Data sources used (company filings, third-party reports, certifications)
 - Weighting of ESG factors (Environmental 30%, Social 30%, Governance 40%)
 - Industry benchmarks referenced
-- Frameworks applied (GRI, SASB, TCFD, MSCI, etc.)
+- Frameworks applied (GRI, SASB, TCFD, MSCI, Sustainalytics, CDP)
 - Cross-verification methods
+- Third-party data sources used for validation (explicitly mention sources like MSCI, Sustainalytics)
 - Limitations or data gaps identified
+- Methodology transparency for credibility
 
-### 8. ACTIONABLE RECOMMENDATIONS
-Provide specific, data-backed recommendations:
+### 10. ACTIONABLE RECOMMENDATIONS & INSIGHTS
+Provide specific, data-backed recommendations with clear call to action:
+
+**Key Strengths:**
+- Where is the company performing well?
+- How can it maintain that trajectory?
+
+**Key Areas for Improvement:**
+- Where should the company focus efforts?
+- Specific steps to improve ESG standing
 
 **Environmental:**
 - Increase renewable energy to X% by 2025
@@ -178,25 +227,37 @@ Provide specific, data-backed recommendations:
 - Strengthen anti-corruption policies with clear enforcement
 - Improve ESG disclosure quality and transparency
 
-### 9. DASHBOARD UI FORMAT
-Structure output for easy integration:
-- **Overall Score**: Large, prominent number (0-100)
-- **ESG Breakdown**: Three sub-scores with visual indicators
-- **Risks**: Bullet points with severity indicators (🔴 High, 🟡 Medium, 🟢 Low)
+### 11. DASHBOARD UI FORMAT & VISUALIZATIONS
+Structure output for easy integration with interactive visualizations:
+- **Overall Score**: Large, prominent number (0-100) with rating badge
+- **ESG Breakdown**: Three sub-scores with visual indicators and progress bars
+- **Risks**: Bullet points with severity indicators (🔴 High, 🟡 Medium, 🟢 Low) and heatmap format
 - **Opportunities**: Bullet points with impact potential
 - **Executive Summary**: At the top, concise and clear
 - **Recommendations**: Categorized by pillar (Environmental, Social, Governance)
+- **Trend Charts**: Bar/line charts showing ESG scores over time
+- **Comparison Charts**: Pie charts for ESG pillar breakdown
+- **Benchmark Graphs**: Comparative performance vs. industry peers
+- **Interactive Elements**: Allow exploration of different timeframes and metrics
 
-### 10. EVIDENCE-BASED ANALYSIS
+### 12. REPORT CUSTOMIZATION OPTIONS
+Note that the report can be:
+- Downloaded in multiple formats (PDF, Excel, shareable web link)
+- Personalized with company-specific goals
+- Adjusted for different ESG pillar weightings
+- Customized for specific stakeholder needs
+
+### 13. EVIDENCE-BASED ANALYSIS
 - Quote specific data points from the report
 - Reference page numbers or sections when possible
 - Mention third-party certifications or audits
 - Highlight data gaps or missing information
 - Note any external validation sources used
+- Ensure all claims are verifiable and transparent
 
 ---
 
-**TONE**: Professional, neutral, factual, investor-grade analysis. Balance strengths and weaknesses transparently.
+**TONE**: Professional, neutral, factual, investor-grade analysis. Balance strengths and weaknesses transparently. Designed for executive decision-making with clarity, data-driven insights, and actionable recommendations.
 
 For general ESG questions (non-report analysis), provide expert guidance on sustainability standards, compliance, and best practices.`
           },
