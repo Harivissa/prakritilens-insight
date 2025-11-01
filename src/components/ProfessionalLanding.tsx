@@ -74,7 +74,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   ];
 
   const stats = [
-    { number: "AI-Powered", label: "Google Gemini Integration", icon: Zap },
+    { number: "AI-Powered", label: "Advanced Analytics", icon: Zap },
     { number: "Real-Time", label: "ESG Analysis", icon: TrendingUp },
     { number: "100MB+", label: "File Support", icon: Upload },
     { number: "Enterprise", label: "Grade Security", icon: Shield }
@@ -174,7 +174,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               variants={fadeInUp}
               className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed"
             >
-              Transform your ESG reporting with Google Gemini AI. Upload documents up to 100MB, 
+              Transform your ESG reporting with AI-powered analytics. Upload documents up to 100MB, 
               get instant insights, and make data-driven sustainability decisions.
             </motion.p>
             
@@ -387,7 +387,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
               Ready to Transform Your ESG Strategy?
             </h2>
             <p className="text-xl mb-8 text-gray-100 max-w-2xl mx-auto">
-              Start analyzing your ESG performance today with Google Gemini AI. 
+              Start analyzing your ESG performance today with advanced AI analytics. 
               No credit card required.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

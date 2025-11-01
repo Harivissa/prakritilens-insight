@@ -279,7 +279,10 @@ export const ContextAwareChat = () => {
                       <Bot className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-base">Prakriti</CardTitle>
+                      <CardTitle className="text-base flex items-center space-x-2">
+                        <span>Prakriti</span>
+                        <Badge variant="outline" className="text-xs px-2 py-0.5">Powered by OpenAI</Badge>
+                      </CardTitle>
                       <CardDescription className="text-xs">
                         Your ESG Assistant {reports.length > 0 && `• ${reports.length} reports analyzed`}
                       </CardDescription>

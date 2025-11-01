@@ -1,4 +1,4 @@
-import { Heart, Globe, Sparkles, Leaf } from 'lucide-react';
+import { Globe, Sparkles, Leaf } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const Footer = () => {
@@ -34,12 +34,6 @@ export const Footer = () => {
               AI-Powered ESG Analytics Platform transforming sustainability reporting 
               with cutting-edge technology and professional insights.
             </p>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                <Sparkles className="w-3 h-3 text-primary" />
-                <span>Powered by Google Gemini AI</span>
-              </div>
-            </div>
           </motion.div>
 
           {/* Quick Links */}
@@ -131,9 +125,7 @@ export const Footer = () => {
               whileHover={{ scale: 1.02 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <span className="text-muted-foreground">Built with</span>
-              <Heart className="w-4 h-4 text-red-500 animate-pulse" />
-              <span className="text-muted-foreground">by</span>
+              <span className="text-muted-foreground">Built by</span>
               <div className="flex items-center space-x-2">
                 <a 
                   href="#" 
