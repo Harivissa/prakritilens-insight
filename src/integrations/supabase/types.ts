@@ -14,6 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          report_id: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          report_id?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          report_id?: string | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_conversations_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_messages: {
+        Row: {
+          confidence: number | null
+          content: string
+          conversation_id: string | null
+          created_at: string | null
+          evidence: Json | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          confidence?: number | null
+          content: string
+          conversation_id?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          confidence?: number | null
+          content?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chats: {
         Row: {
           created_at: string
@@ -40,6 +116,50 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      document_embeddings: {
+        Row: {
+          chunk_index: number
+          chunk_text: string
+          created_at: string | null
+          embedding: string | null
+          id: string
+          metadata: Json | null
+          page_number: number | null
+          report_id: string | null
+          user_id: string
+        }
+        Insert: {
+          chunk_index: number
+          chunk_text: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          page_number?: number | null
+          report_id?: string | null
+          user_id: string
+        }
+        Update: {
+          chunk_index?: number
+          chunk_text?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          page_number?: number | null
+          report_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_embeddings_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -78,38 +198,56 @@ export type Database = {
         Row: {
           analysis_data: Json | null
           company_name: string | null
+          confidence_level: string | null
           created_at: string | null
+          evidence: Json | null
+          extracted_metrics: Json | null
           file_name: string | null
           file_url: string | null
           hash: string | null
           id: string
+          page_count: number | null
+          report_year: number | null
           score: number | null
           updated_at: string | null
           user_id: string | null
+          validation_status: string | null
         }
         Insert: {
           analysis_data?: Json | null
           company_name?: string | null
+          confidence_level?: string | null
           created_at?: string | null
+          evidence?: Json | null
+          extracted_metrics?: Json | null
           file_name?: string | null
           file_url?: string | null
           hash?: string | null
           id?: string
+          page_count?: number | null
+          report_year?: number | null
           score?: number | null
           updated_at?: string | null
           user_id?: string | null
+          validation_status?: string | null
         }
         Update: {
           analysis_data?: Json | null
           company_name?: string | null
+          confidence_level?: string | null
           created_at?: string | null
+          evidence?: Json | null
+          extracted_metrics?: Json | null
           file_name?: string | null
           file_url?: string | null
           hash?: string | null
           id?: string
+          page_count?: number | null
+          report_year?: number | null
           score?: number | null
           updated_at?: string | null
           user_id?: string | null
+          validation_status?: string | null
         }
         Relationships: []
       }
@@ -149,10 +287,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: { _user_id?: string }
-        Returns: boolean
-      }
+      is_admin: { Args: { _user_id?: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"

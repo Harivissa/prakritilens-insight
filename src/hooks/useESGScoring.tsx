@@ -1,7 +1,40 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-// Function to generate deterministic hash from content
+// Document validation keywords
+const ESG_KEYWORDS = [
+  'sustainability', 'esg', 'environmental', 'social', 'governance',
+  'annual report', 'csr', 'corporate social responsibility',
+  'carbon', 'emissions', 'scope 1', 'scope 2', 'scope 3',
+  'renewable', 'diversity', 'board', 'compliance',
+  'gri', 'sasb', 'tcfd', 'climate', 'sdg'
+];
+
+function validateESGDocument(text: string, fileName: string): { isValid: boolean; confidence: number; reason: string } {
+  const lowerText = text.toLowerCase();
+  const lowerFileName = fileName.toLowerCase();
+  
+  let matchCount = 0;
+  const totalKeywords = ESG_KEYWORDS.length;
+  
+  ESG_KEYWORDS.forEach(keyword => {
+    if (lowerText.includes(keyword) || lowerFileName.includes(keyword)) {
+      matchCount++;
+    }
+  });
+  
+  const confidence = (matchCount / totalKeywords) * 100;
+  const isValid = matchCount >= 3;
+  
+  return {
+    isValid,
+    confidence: Math.min(confidence * 2, 100),
+    reason: isValid 
+      ? `Document contains ${matchCount} ESG-related terms and appears to be a valid sustainability/ESG report`
+      : `Document contains only ${matchCount} ESG-related terms. Please upload a proper sustainability or annual report.`
+  };
+}
+
 export const generateContentHash = (text: string): string => {
   // Normalize text for consistent hashing
   const normalizedText = text
@@ -118,128 +151,144 @@ function parseAIResponse(aiResponse: string) {
   };
 }
 
-// Function to extract text from document
-async function extractTextFromDocument(file: File): Promise<string> {
-  // For text-based files
+async function extractTextFromDocument(file: File): Promise<{ text: string; pageCount: number }> {
   if (file.type === 'text/plain' || file.type === 'text/csv' || 
       file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
-    return new Promise((resolve, reject) => {
+    const text = await new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target?.result as string);
       reader.onerror = () => reject(new Error('Failed to read file'));
       reader.readAsText(file);
     });
+    return { text, pageCount: Math.ceil(text.length / 3000) };
   }
   
-  // For PDF files
   if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
     try {
       const arrayBuffer = await file.arrayBuffer();
-      
-      // Dynamically import pdfjs-dist
       const pdfjsLib = await import('pdfjs-dist');
       
-      // Set worker source
       pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
       
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
       
-      // Extract text from all pages (limit to first 50 for performance)
-      const numPages = Math.min(pdf.numPages, 50);
+      const numPages = Math.min(pdf.numPages, 100);
       for (let i = 1; i <= numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items
           .map((item: any) => item.str)
           .join(' ');
-        fullText += pageText + '\n';
+        fullText += `\n[Page ${i}]\n` + pageText;
       }
       
       if (fullText.trim().length === 0) {
-        return `PDF Document: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)}MB\n\nThis appears to be a scanned PDF or image-based PDF. Please analyze based on the document structure and provide ESG scoring.`;
+        throw new Error('No text could be extracted from PDF');
       }
       
-      return fullText;
+      return { text: fullText, pageCount: pdf.numPages };
     } catch (error) {
       console.error('PDF parsing error:', error);
-      return `PDF Document: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)}MB\n\nUnable to extract text from PDF. Please analyze this ESG document and provide comprehensive scoring.`;
+      throw new Error('Unable to extract text from PDF. Please ensure it is not password-protected or scanned.');
     }
   }
   
-  // For DOCX and other document types (simplified - in production use mammoth.js or similar)
-  if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-    return `Word Document: ${file.name}\nSize: ${(file.size / 1024 / 1024).toFixed(2)}MB\n\nPlease analyze this ESG/sustainability document and provide comprehensive scoring based on typical ESG report structure.`;
+  if (file.name.endsWith('.docx')) {
+    try {
+      const mammoth = await import('mammoth');
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return { text: result.value, pageCount: Math.ceil(result.value.length / 3000) };
+    } catch (error) {
+      console.error('DOCX parsing error:', error);
+      throw new Error('Unable to extract text from DOCX file');
+    }
   }
   
-  // For other document types
-  return `Document: ${file.name}\nType: ${file.type}\nSize: ${(file.size / 1024 / 1024).toFixed(2)}MB\n\nPlease analyze this ESG/sustainability document and provide comprehensive scoring.`;
+  throw new Error(`Unsupported file type: ${file.type}. Please upload PDF, DOCX, TXT, or CSV.`);
 }
 
 export function useESGScoring() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [progress, setProgress] = useState({ stage: '', percent: 0 });
 
   const analyzeDocument = async (file: File) => {
     setIsAnalyzing(true);
+    setProgress({ stage: 'Extracting text...', percent: 10 });
+    
     try {
-      console.log('Starting real AI-powered ESG analysis for:', file.name);
+      console.log('Starting ESG analysis for:', file.name);
       
-      // Extract text from document
-      const extractedText = await extractTextFromDocument(file);
-      console.log('Text extracted, length:', extractedText.length);
+      const { text: extractedText, pageCount } = await extractTextFromDocument(file);
+      console.log('Text extracted:', extractedText.length, 'characters,', pageCount, 'pages');
+      setProgress({ stage: 'Validating document...', percent: 30 });
       
-      // Call AI assistant for real ESG analysis
-      const { data: aiData, error: aiError } = await supabase.functions.invoke('ai-assistant', {
-        body: { 
-          message: `Please analyze this ESG/sustainability document and provide a comprehensive ESG risk assessment:
-
-DOCUMENT: ${file.name}
-SIZE: ${(file.size / 1024 / 1024).toFixed(2)}MB
-
-CONTENT:
-${extractedText.substring(0, 50000)} ${extractedText.length > 50000 ? '...[truncated for length]' : ''}
-
-Please provide a detailed analysis with:
-1. Overall ESG Score (0-100)
-2. Breakdown scores for Environmental, Social, and Governance (each 0-100)
-3. Key ESG risks and concerns
-4. Opportunities for improvement
-5. Executive summary with key insights
-6. Strengths and weaknesses
-
-Format your response with clear headings and bullet points for easy parsing.`
+      const validation = validateESGDocument(extractedText, file.name);
+      console.log('Validation:', validation);
+      
+      if (!validation.isValid && validation.confidence < 30) {
+        throw new Error(validation.reason);
+      }
+      
+      setProgress({ stage: 'Analyzing ESG metrics...', percent: 40 });
+      
+      const { data: analysisData, error: analysisError } = await supabase.functions.invoke(
+        'structured-esg-analysis',
+        {
+          body: {
+            documentText: extractedText,
+            fileName: file.name,
+            fileSize: file.size
+          }
         }
+      );
+
+      if (analysisError) {
+        throw new Error('Failed to analyze: ' + analysisError.message);
+      }
+
+      if (analysisData.error === 'NOT_ESG_REPORT') {
+        throw new Error(analysisData.message || 'Not an ESG report');
+      }
+
+      setProgress({ stage: 'Generating embeddings...', percent: 70 });
+      
+      const reportId = crypto.randomUUID();
+      supabase.functions.invoke('generate-embeddings', {
+        body: { reportId, documentText: extractedText, pageCount }
       });
 
-      if (aiError) {
-        console.error('AI analysis error:', aiError);
-        throw new Error('Failed to analyze document with AI: ' + (aiError.message || 'Unknown error'));
-      }
+      setProgress({ stage: 'Done!', percent: 100 });
 
-      console.log('AI analysis complete');
-      
-      // Parse AI response
-      const aiResponse = aiData?.response || '';
-      const parsedResults = parseAIResponse(aiResponse);
-      
-      // Ensure we have valid scores - if AI didn't provide scores, use reasonable defaults
-      if (parsedResults.score === 0 || !parsedResults.score) {
-        console.warn('AI did not provide scores, using estimated values');
-        parsedResults.score = 72; // Default reasonable score
-        if (!parsedResults.breakdown.environmental) parsedResults.breakdown.environmental = 70;
-        if (!parsedResults.breakdown.social) parsedResults.breakdown.social = 73;
-        if (!parsedResults.breakdown.governance) parsedResults.breakdown.governance = 74;
-      }
-      
-      console.log('Analysis results:', parsedResults);
-      
       return {
-        ...parsedResults,
+        score: analysisData.scores.overall,
+        breakdown: {
+          environmental: analysisData.scores.environmental,
+          social: analysisData.scores.social,
+          governance: analysisData.scores.governance
+        },
+        confidence_level: analysisData.scores.confidence_level,
+        evidence: analysisData.evidence || [],
+        risks: (analysisData.risks || []).map((r: any) => r.title || r.description),
+        opportunities: (analysisData.opportunities || []).map((o: any) => o.title || o.description),
+        recommendations: analysisData.recommendations || [],
+        analysis: [analysisData.executive_summary || 'AI-powered ESG analysis completed'],
+        executive_summary: analysisData.executive_summary || '',
+        metadata: {
+          company_name: analysisData.metadata?.company_name || file.name.replace(/\.[^/.]+$/, ''),
+          report_year: analysisData.metadata?.report_year || new Date().getFullYear(),
+          report_type: analysisData.metadata?.report_type || 'ESG Report',
+          page_count: pageCount
+        },
+        validation_status: 'validated',
         extractedText,
-        fullAIResponse: aiResponse, // Include full AI response for detailed view
+        reportId
       };
+      
     } catch (error) {
-      console.error('Document analysis error:', error);
+      console.error('Analysis error:', error);
+      setProgress({ stage: 'Error', percent: 0 });
       throw error;
     } finally {
       setIsAnalyzing(false);
@@ -249,5 +298,6 @@ Format your response with clear headings and bullet points for easy parsing.`
   return {
     analyzeDocument,
     isAnalyzing,
+    progress
   };
 }

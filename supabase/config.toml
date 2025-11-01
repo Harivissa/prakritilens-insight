@@ -70,3 +70,12 @@ backend = "postgres"
 
 [functions.ai-assistant]
 verify_jwt = true
+
+[functions.structured-esg-analysis]
+verify_jwt = true
+
+[functions.rag-chat]
+verify_jwt = true
+
+[functions.generate-embeddings]
+verify_jwt = true
