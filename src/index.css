@@ -53,20 +53,28 @@ All colors MUST be HSL. Nature-inspired with professional accents.
     --input: 150 20% 88%;
     --ring: 142 76% 36%;
 
-    /* Gradients */
+    /* Gradients - Masterclass */
     --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(158 64% 52%));
     --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(158 64% 52%) 50%, hsl(120 60% 45%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(150 30% 98%) 100%);
+    --gradient-shimmer: linear-gradient(110deg, transparent 25%, hsl(142 76% 36% / 0.2) 50%, transparent 75%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(142 76% 36% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(158 64% 52% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(120 60% 45% / 0.15) 0px, transparent 50%);
 
-    /* Shadows - Enhanced Professional */
-    --shadow-elegant: 0 10px 40px -10px hsl(142 76% 36% / 0.15), 0 2px 8px hsl(160 15% 8% / 0.04);
-    --shadow-card: 0 2px 8px -1px hsl(160 15% 8% / 0.08), 0 4px 12px -2px hsl(160 15% 8% / 0.04);
-    --shadow-floating: 0 20px 60px -15px hsl(142 76% 36% / 0.25), 0 8px 24px -8px hsl(160 15% 8% / 0.12);
-    --shadow-subtle: 0 1px 3px hsl(160 15% 8% / 0.06);
+    /* Shadows - Masterclass Premium */
+    --shadow-elegant: 0 10px 40px -10px hsl(142 76% 36% / 0.2), 0 4px 16px -4px hsl(160 15% 8% / 0.08);
+    --shadow-card: 0 4px 12px -1px hsl(160 15% 8% / 0.1), 0 6px 16px -4px hsl(160 15% 8% / 0.06);
+    --shadow-floating: 0 24px 72px -20px hsl(142 76% 36% / 0.3), 0 12px 32px -12px hsl(160 15% 8% / 0.15);
+    --shadow-subtle: 0 2px 6px hsl(160 15% 8% / 0.08);
+    --shadow-glow: 0 0 40px hsl(142 76% 36% / 0.25);
+    --shadow-intense: 0 32px 96px -24px hsl(142 76% 36% / 0.4), 0 16px 48px -16px hsl(160 15% 8% / 0.2);
 
-    /* Animations */
+    /* Animations - Premium Timing */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-spring: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-elegant: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
     --radius: 0.75rem;
 
@@ -122,16 +130,22 @@ All colors MUST be HSL. Nature-inspired with professional accents.
     --input: 0 0% 15%;
     --ring: 158 64% 52%;
 
-    /* Dark Mode Gradients */
+    /* Dark Mode Gradients - Masterclass */
     --gradient-primary: linear-gradient(135deg, hsl(158 64% 52%), hsl(142 76% 46%));
     --gradient-hero: linear-gradient(135deg, hsl(158 64% 52%) 0%, hsl(142 76% 46%) 50%, hsl(120 60% 55%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(0 0% 6%) 0%, hsl(0 0% 8%) 100%);
+    --gradient-shimmer: linear-gradient(110deg, transparent 25%, hsl(158 64% 52% / 0.2) 50%, transparent 75%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(158 64% 52% / 0.1) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(142 76% 46% / 0.1) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(120 60% 55% / 0.1) 0px, transparent 50%);
 
-    /* Dark Shadows - Enhanced */
-    --shadow-elegant: 0 10px 40px -10px hsl(0 0% 0% / 0.7), 0 2px 8px hsl(0 0% 0% / 0.3);
-    --shadow-card: 0 2px 8px -1px hsl(0 0% 0% / 0.6), 0 4px 12px -2px hsl(0 0% 0% / 0.4);
-    --shadow-floating: 0 20px 60px -15px hsl(158 64% 52% / 0.4), 0 8px 24px -8px hsl(0 0% 0% / 0.5);
-    --shadow-subtle: 0 1px 3px hsl(0 0% 0% / 0.4);
+    /* Dark Shadows - Masterclass Premium */
+    --shadow-elegant: 0 10px 40px -10px hsl(0 0% 0% / 0.8), 0 4px 16px -4px hsl(0 0% 0% / 0.5);
+    --shadow-card: 0 4px 12px -1px hsl(0 0% 0% / 0.7), 0 6px 16px -4px hsl(0 0% 0% / 0.5);
+    --shadow-floating: 0 24px 72px -20px hsl(158 64% 52% / 0.5), 0 12px 32px -12px hsl(0 0% 0% / 0.6);
+    --shadow-subtle: 0 2px 6px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 50px hsl(158 64% 52% / 0.35);
+    --shadow-intense: 0 32px 96px -24px hsl(158 64% 52% / 0.6), 0 16px 48px -16px hsl(0 0% 0% / 0.7);
 
     --sidebar-background: 0 0% 6%;
     --sidebar-foreground: 0 0% 95%;
@@ -154,7 +168,7 @@ All colors MUST be HSL. Nature-inspired with professional accents.
     font-family: 'Inter', sans-serif;
   }
 
-  /* Custom utility classes */
+  /* Custom utility classes - Masterclass Edition */
   .gradient-primary {
     background: var(--gradient-primary);
   }
@@ -165,6 +179,16 @@ All colors MUST be HSL. Nature-inspired with professional accents.
 
   .gradient-card {
     background: var(--gradient-card);
+  }
+
+  .gradient-mesh {
+    background: var(--gradient-mesh);
+  }
+
+  .gradient-shimmer {
+    background: var(--gradient-shimmer);
+    background-size: 200% 100%;
+    animation: shimmer 3s ease-in-out infinite;
   }
 
   .shadow-elegant {
@@ -183,6 +207,14 @@ All colors MUST be HSL. Nature-inspired with professional accents.
     box-shadow: var(--shadow-subtle);
   }
 
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-intense {
+    box-shadow: var(--shadow-intense);
+  }
+
   .transition-smooth {
     transition: var(--transition-smooth);
   }
@@ -191,26 +223,60 @@ All colors MUST be HSL. Nature-inspired with professional accents.
     transition: var(--transition-spring);
   }
 
-  /* Glass effect */
+  .transition-bounce {
+    transition: var(--transition-bounce);
+  }
+
+  .transition-elegant {
+    transition: var(--transition-elegant);
+  }
+
+  /* Glass effect - Premium */
   .glass-card {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
   .dark .glass-card {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
-  /* Hover lift effect */
+  /* Frosted glass - Ultra premium */
+  .frosted-glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .dark .frosted-glass {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Hover lift effect - Enhanced */
   .hover-lift {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .hover-lift:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px) scale(1.01);
+  }
+
+  /* Hover float - Subtle */
+  .hover-float {
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  .hover-float:hover {
+    transform: translateY(-3px);
   }
 
   /* Smooth scale */
@@ -237,10 +303,30 @@ All colors MUST be HSL. Nature-inspired with professional accents.
 
   @keyframes pulse-glow {
     0%, 100% { 
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+      box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
     }
     50% { 
-      box-shadow: 0 0 30px hsl(var(--primary) / 0.5);
+      box-shadow: 0 0 50px hsl(var(--primary) / 0.6);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
     }
   }
 
@@ -253,6 +339,14 @@ All colors MUST be HSL. Nature-inspired with professional accents.
   }
 
   .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+    animation: pulse-glow 2.5s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
+  .animate-slide-in {
+    animation: slide-in 0.5s ease-out;
   }
 }
