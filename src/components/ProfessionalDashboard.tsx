@@ -35,7 +35,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const ProfessionalDashboard = () => {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
-  const { reports, loading } = useReports();
+  const { reports, loading, deleteReport } = useReports();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedReport, setSelectedReport] = useState<any>(null);
@@ -85,12 +85,17 @@ export const ProfessionalDashboard = () => {
   };
 
   const handleDeleteReport = async (report: any) => {
-    if (!window.confirm(`Are you sure you want to delete the report for "${report.company_name || 'Unknown Company'}"? This action cannot be undone.`)) {
+    if (!window.confirm(
+      `⚠️ Delete Report?\n\n` +
+      `This will permanently delete the report for "${report.company_name || 'Unknown Company'}" ` +
+      `and remove the associated file from storage.\n\n` +
+      `This action cannot be undone.\n\n` +
+      `Are you sure you want to continue?`
+    )) {
       return;
     }
 
     try {
-      const { deleteReport } = useReports();
       await deleteReport(report.id, report.file_url);
     } catch (error) {
       console.error('Error deleting report:', error);
