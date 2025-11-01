@@ -28,6 +28,7 @@ import { DarkModeToggle } from './DarkModeToggle';
 import { TrendAnalytics } from './TrendAnalytics';
 import { VerificationBanner } from './VerificationBanner';
 import { Footer } from './Footer';
+import { VoiceAssistant } from './VoiceAssistant';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
@@ -599,6 +600,9 @@ export const ProfessionalDashboard = () => {
           }}
         />
       )}
+
+      {/* Voice Assistant */}
+      <VoiceAssistant />
 
       {/* Professional Footer */}
       <Footer />
