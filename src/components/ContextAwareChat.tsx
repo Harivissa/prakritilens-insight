@@ -83,16 +83,26 @@ export const ContextAwareChat = () => {
   };
 
   const handleClearChat = async () => {
+    // Professional confirmation dialog
+    if (!window.confirm(
+      '⚠️ Clear Chat History?\n\n' +
+      'This will permanently delete all your conversation history with Prakriti AI assistant. ' +
+      'This action cannot be undone.\n\n' +
+      'Are you sure you want to continue?'
+    )) {
+      return;
+    }
+
     try {
       await clearChats();
       toast({
-        title: "Chat Cleared",
-        description: "All chat history has been deleted.",
+        title: "✓ Chat History Cleared",
+        description: "All conversation history has been permanently deleted.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to clear chat. Please try again.",
+        description: "Failed to clear chat history. Please try again.",
         variant: "destructive",
       });
     }

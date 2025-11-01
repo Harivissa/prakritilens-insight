@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Play, Upload, MessageSquare, TrendingUp, Shield, Zap, Users, CheckCircle2, Star, Globe, BarChart3 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AuthModal } from './AuthModal';
+import { Footer } from './Footer';
 
 interface ProfessionalLandingProps {
   onGetStarted?: () => void;
@@ -482,6 +483,9 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         mode={authMode}
         onModeChange={setAuthMode}
       />
+
+      {/* Professional Footer */}
+      <Footer />
     </div>
   );
 };

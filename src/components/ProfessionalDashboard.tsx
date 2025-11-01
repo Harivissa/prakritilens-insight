@@ -27,6 +27,7 @@ import { UserRoleManager } from './UserRoleManager';
 import { DarkModeToggle } from './DarkModeToggle';
 import { TrendAnalytics } from './TrendAnalytics';
 import { VerificationBanner } from './VerificationBanner';
+import { Footer } from './Footer';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
@@ -83,9 +84,14 @@ export const ProfessionalDashboard = () => {
     setShowDetailModal(true);
   };
 
-  const handleDeleteReport = async (reportId: string) => {
+  const handleDeleteReport = async (report: any) => {
+    if (!window.confirm(`Are you sure you want to delete the report for "${report.company_name || 'Unknown Company'}"? This action cannot be undone.`)) {
+      return;
+    }
+
     try {
-      await reports.find(r => r.id === reportId) && await useReports().deleteReport(reportId);
+      const { deleteReport } = useReports();
+      await deleteReport(report.id, report.file_url);
     } catch (error) {
       console.error('Error deleting report:', error);
     }
@@ -415,7 +421,7 @@ export const ProfessionalDashboard = () => {
                                   Generate PPTX
                                 </DropdownMenuItem>
                                 <DropdownMenuItem 
-                                  onClick={() => handleDeleteReport(report.id)}
+                                  onClick={() => handleDeleteReport(report)}
                                   className="text-red-600 focus:text-red-600"
                                 >
                                   <Trash2 className="w-4 h-4 mr-2" />
@@ -588,6 +594,9 @@ export const ProfessionalDashboard = () => {
           }}
         />
       )}
+
+      {/* Professional Footer */}
+      <Footer />
     </div>
   );
 };

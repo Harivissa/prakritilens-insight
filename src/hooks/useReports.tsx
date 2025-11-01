@@ -150,10 +150,37 @@ export const useReports = () => {
     }
   };
 
-  const deleteReport = async (reportId: string) => {
+  const deleteReport = async (reportId: string, fileUrl?: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
+      // If there's a file URL, delete the file from storage first
+      if (fileUrl) {
+        try {
+          // Extract the file path from the signed URL
+          const urlParts = fileUrl.split('/');
+          const bucketIndex = urlParts.findIndex(part => part === 'reports');
+          
+          if (bucketIndex !== -1 && urlParts[bucketIndex + 1]) {
+            // Reconstruct the file path
+            const filePath = urlParts.slice(bucketIndex + 1).join('/').split('?')[0];
+            
+            const { error: storageError } = await supabase.storage
+              .from('reports')
+              .remove([filePath]);
+
+            if (storageError) {
+              console.error('Error deleting file from storage:', storageError);
+              // Continue with report deletion even if file deletion fails
+            }
+          }
+        } catch (storageError) {
+          console.error('Error processing file deletion:', storageError);
+          // Continue with report deletion
+        }
+      }
+
+      // Delete the report from the database
       const { error } = await supabase
         .from('reports')
         .delete()
@@ -164,7 +191,7 @@ export const useReports = () => {
 
       toast({
         title: "Report deleted",
-        description: "The report has been deleted successfully.",
+        description: "The report and associated files have been deleted successfully.",
       });
 
       await fetchReports(); // Refresh the reports list
@@ -174,6 +201,7 @@ export const useReports = () => {
         description: error.message,
         variant: "destructive",
       });
+      throw error;
     }
   };
 
