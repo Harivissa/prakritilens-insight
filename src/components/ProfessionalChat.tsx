@@ -91,9 +91,33 @@ export const ProfessionalChat = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-12rem)] flex flex-col">
-      {/* Modern Chat Container */}
-      <div className="flex-1 flex flex-col bg-background rounded-3xl shadow-elegant p-6 space-y-6">
+    <div className="flex flex-col h-full max-w-5xl mx-auto">
+      {/* Chat Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 rounded-t-xl">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
+            <Bot className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-foreground">Prakriti AI</h3>
+            <p className="text-xs text-muted-foreground">Your ESG Assistant</p>
+          </div>
+        </div>
+        {chats.length > 0 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleClearChat}
+            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Clear Chat
+          </Button>
+        )}
+      </div>
+
+      {/* Chat Messages Area */}
+      <div className="flex-1 overflow-hidden bg-background">
 
         {/* Welcome Message */}
         {chats.length === 0 && !loading && (
@@ -191,9 +215,8 @@ export const ProfessionalChat = () => {
           </div>
         )}
 
-        {/* Chat Messages */}
-        <ScrollArea ref={scrollAreaRef} className="flex-1 px-4">
-          <div className="space-y-6 pb-6">
+        <ScrollArea ref={scrollAreaRef} className="h-full">
+          <div className="space-y-6 px-6 py-6">
             <AnimatePresence>
               {chats.map((chat, index) => (
                 <motion.div
@@ -204,10 +227,10 @@ export const ProfessionalChat = () => {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   className="space-y-4"
                 >
-                  {/* User Message */}
-                  <div className="flex justify-end">
+                   {/* User Message */}
+                  <div className="flex justify-end group">
                     <div className="flex items-start space-x-3 max-w-[75%]">
-                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl rounded-tr-sm px-5 py-3 shadow-md">
+                      <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white rounded-2xl rounded-tr-sm px-5 py-3 shadow-md relative">
                         <p className="text-sm leading-relaxed">{chat.message}</p>
                         <div className="flex items-center justify-end mt-2 text-xs opacity-80">
                           <Clock className="w-3 h-3 mr-1" />
@@ -275,15 +298,17 @@ export const ProfessionalChat = () => {
             )}
           </div>
         </ScrollArea>
+      </div>
 
-        {/* Message Input */}
-        <div className="px-4 pt-4 border-t border-border/50">
-          <form onSubmit={handleSendMessage} className="flex items-center space-x-3 bg-muted/30 rounded-2xl p-2 border border-border/50">
+      {/* Message Input - Fixed at bottom */}
+      <div className="border-t border-border bg-card/50 px-6 py-4 rounded-b-xl">
+        <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
+          <div className="flex-1 bg-background rounded-2xl border border-border/50 focus-within:border-primary/50 transition-colors">
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Ask me anything about ESG, sustainability, climate action..."
-              className="min-h-[50px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm"
+              placeholder="Message Prakriti AI..."
+              className="min-h-[52px] max-h-32 resize-none border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-sm px-4 py-3"
               disabled={sending}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -292,24 +317,24 @@ export const ProfessionalChat = () => {
                 }
               }}
             />
-            <Button 
-              type="submit" 
-              disabled={!message.trim() || sending}
-              size="sm"
-              className="rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-md h-10 w-10 p-0 flex-shrink-0"
-            >
-              {sending ? (
-                <RefreshCw className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-            </Button>
-          </form>
-          
-          <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground">
-            <Sparkles className="w-3 h-3 mr-1" />
-            <span>Powered by OpenAI</span>
           </div>
+          <Button 
+            type="submit" 
+            disabled={!message.trim() || sending}
+            size="sm"
+            className="rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 shadow-md h-[52px] w-[52px] p-0 flex-shrink-0"
+          >
+            {sending ? (
+              <RefreshCw className="w-5 h-5 animate-spin" />
+            ) : (
+              <Send className="w-5 h-5" />
+            )}
+          </Button>
+        </form>
+        
+        <div className="flex items-center justify-center mt-3 text-xs text-muted-foreground">
+          <Sparkles className="w-3 h-3 mr-1" />
+          <span>AI can make mistakes. Check important info.</span>
         </div>
       </div>
     </div>
