@@ -91,9 +91,9 @@ export const ProfessionalChat = () => {
   };
 
   return (
-    <div className="flex flex-col h-full max-w-5xl mx-auto">
+    <div className="flex flex-col h-full max-h-[calc(100vh-16rem)] max-w-5xl mx-auto">
       {/* Chat Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 rounded-t-xl">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/50 rounded-t-xl flex-shrink-0">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-md">
             <Bot className="w-4 h-4 text-white" />
@@ -301,7 +301,7 @@ export const ProfessionalChat = () => {
       </div>
 
       {/* Message Input - Fixed at bottom */}
-      <div className="border-t border-border bg-card/50 px-6 py-4 rounded-b-xl">
+      <div className="border-t border-border bg-card/50 px-6 py-4 rounded-b-xl flex-shrink-0">
         <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
           <div className="flex-1 bg-background rounded-2xl border border-border/50 focus-within:border-primary/50 transition-colors">
             <Textarea
