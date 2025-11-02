@@ -23,15 +23,16 @@ function validateESGDocument(text: string, fileName: string): { isValid: boolean
     }
   });
   
+  // More lenient validation - just check if it's likely an ESG document
   const confidence = (matchCount / totalKeywords) * 100;
-  const isValid = matchCount >= 3;
+  const isValid = matchCount >= 2; // Reduced from 3 to 2 for better detection
   
   return {
     isValid,
-    confidence: Math.min(confidence * 2, 100),
+    confidence: Math.min(confidence * 3, 100), // Increased multiplier
     reason: isValid 
-      ? `Document contains ${matchCount} ESG-related terms and appears to be a valid sustainability/ESG report`
-      : `Document contains only ${matchCount} ESG-related terms. Please upload a proper sustainability or annual report.`
+      ? `Document contains ${matchCount} ESG-related terms - proceeding with analysis`
+      : `This document doesn't appear to be an ESG/sustainability report. Found only ${matchCount} ESG terms. Please upload a sustainability report, annual report, or ESG disclosure document.`
   };
 }
 
@@ -225,9 +226,10 @@ export function useESGScoring() {
       setProgress({ stage: 'Validating document...', percent: 30 });
       
       const validation = validateESGDocument(extractedText, file.name);
-      console.log('Validation:', validation);
+      console.log('Document validation:', validation);
       
-      if (!validation.isValid && validation.confidence < 30) {
+      // Only reject if very low confidence
+      if (!validation.isValid && validation.confidence < 20) {
         throw new Error(validation.reason);
       }
       
@@ -249,7 +251,9 @@ export function useESGScoring() {
       }
 
       if (analysisData.error === 'NOT_ESG_REPORT') {
-        throw new Error(analysisData.message || 'Not an ESG report');
+        throw new Error(
+          `This document does not appear to be an ESG or sustainability report.\n\n${analysisData.message}\n\nPlease upload an official sustainability report, annual report with ESG section, or ESG disclosure document.`
+        );
       }
 
       setProgress({ stage: 'Generating embeddings...', percent: 70 });

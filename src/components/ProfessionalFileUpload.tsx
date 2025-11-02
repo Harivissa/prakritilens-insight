@@ -123,19 +123,28 @@ export const ProfessionalFileUpload = () => {
         } : f)
       );
 
-      // Save to database
+      // Save to database with actual company name from analysis
+      const companyName = analysis.metadata?.company_name || 
+                          fileData.file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+      
       await saveReport({
         score: analysis.score,
-        company_name: `Company_${Date.now()}`,
+        company_name: companyName,
         file_name: fileData.file.name,
         file_url: storedUrl,
         hash: `hash_${Date.now()}`,
         analysis_data: analysis
       });
 
+      // Get company name for better user feedback
+      const displayName = analysis.metadata?.company_name || fileData.file.name;
+      const scoreRating = analysis.score >= 80 ? '🌟 Excellent' : 
+                          analysis.score >= 60 ? '✓ Good' : 
+                          analysis.score >= 40 ? '⚠ Fair' : '⚠ Needs Improvement';
+      
       toast({
-        title: "Analysis Complete",
-        description: `${fileData.file.name} (${formatFileSize(fileSize)}) has been analyzed successfully.`,
+        title: "✅ Analysis Complete",
+        description: `${displayName} - ESG Score: ${analysis.score.toFixed(1)}/100 (${scoreRating})`,
       });
 
     } catch (error: any) {

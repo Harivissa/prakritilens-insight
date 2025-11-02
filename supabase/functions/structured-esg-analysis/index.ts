@@ -46,21 +46,26 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an ESG (Environmental, Social, Governance) analysis expert. Extract structured ESG data from company sustainability reports.
-            
-CRITICAL: You must ALWAYS call the extract_esg_data function with your analysis. Do not provide a text response without calling the function.
+            content: `You are an expert ESG analyst with deep knowledge of sustainability reporting frameworks (GRI, SASB, TCFD, CDP).
 
-For each metric you extract:
-- Provide the exact text snippet from the document
-- Include the page number (estimate based on text position)
-- Assign a confidence score (0-100) based on data quality
-- Extract numeric values when available
+YOUR PRIMARY TASK:
+1. FIRST, identify the company name from the document (look at headers, titles, company info)
+2. DETERMINE if this is an ESG/sustainability report by checking for:
+   - Environmental metrics (emissions, energy, waste, water)
+   - Social metrics (diversity, safety, labor practices)
+   - Governance metrics (board composition, ethics, compliance)
+   - Standard reporting frameworks (GRI, SASB, TCFD)
+3. If NOT an ESG report, set is_esg_report to false and explain what type of document it is
+4. If it IS an ESG report, perform thorough analysis
 
-Score each pillar (E/S/G) from 0-100 based on:
-- Data completeness and transparency
-- Performance vs industry benchmarks
-- Trend direction (improving/declining)
-- Evidence of concrete actions vs vague commitments`
+SCORING METHODOLOGY (0-100 scale):
+- 80-100: Excellent - Comprehensive data, strong performance, aligned with best practices
+- 60-79: Good - Solid reporting, room for improvement in some areas
+- 40-59: Fair - Basic disclosure, significant gaps in data or performance
+- 20-39: Poor - Limited disclosure, major concerns in multiple areas
+- 0-19: Critical - Minimal or no meaningful ESG data
+
+You MUST call the extract_esg_data function with complete structured analysis. Be thorough and evidence-based.`
           },
           {
             role: 'user',
@@ -78,14 +83,27 @@ ${documentText.substring(0, 50000)}${documentText.length > 50000 ? '\n\n[Documen
               parameters: {
                 type: 'object',
                 properties: {
-                  validation: {
+                   validation: {
                     type: 'object',
                     properties: {
-                      is_esg_report: { type: 'boolean', description: 'Is this a genuine ESG/sustainability report?' },
-                      confidence: { type: 'number', description: 'Confidence in validation (0-100)' },
-                      reason: { type: 'string', description: 'Why is/isn\'t this an ESG report?' }
+                      is_esg_report: { 
+                        type: 'boolean', 
+                        description: 'Is this a genuine ESG/sustainability/annual report with ESG data?' 
+                      },
+                      confidence: { 
+                        type: 'number', 
+                        description: 'Confidence in validation 0-100' 
+                      },
+                      reason: { 
+                        type: 'string', 
+                        description: 'Detailed explanation: If NOT ESG report, identify what type of document this is (e.g., financial report, marketing material, research paper). If IS ESG report, explain what makes it valid.' 
+                      },
+                      document_type: {
+                        type: 'string',
+                        description: 'Type identified: ESG Report, Sustainability Report, Annual Report, CSR Report, Integrated Report, or Other'
+                      }
                     },
-                    required: ['is_esg_report', 'confidence', 'reason']
+                    required: ['is_esg_report', 'confidence', 'reason', 'document_type']
                   },
                   metadata: {
                     type: 'object',
@@ -195,11 +213,15 @@ ${documentText.substring(0, 50000)}${documentText.length > 50000 ? '\n\n[Documen
 
     // Validate that it's actually an ESG report
     if (!analysisResult.validation.is_esg_report) {
+      const documentType = analysisResult.validation.document_type || 'Unknown';
+      const detailedMessage = `📄 Document Type Identified: ${documentType}\n\n${analysisResult.validation.reason}\n\n✅ To analyze a document, please upload:\n- ESG/Sustainability Report\n- Annual Report with ESG section\n- Corporate Social Responsibility (CSR) Report\n- Integrated Report with ESG data`;
+      
       return new Response(
         JSON.stringify({
           error: 'NOT_ESG_REPORT',
-          message: analysisResult.validation.reason || 'Document not recognized as ESG/sustainability report',
-          confidence: analysisResult.validation.confidence
+          message: detailedMessage,
+          confidence: analysisResult.validation.confidence,
+          document_type: documentType
         }),
         {
           status: 400,
