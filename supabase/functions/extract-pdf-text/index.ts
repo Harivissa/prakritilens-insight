@@ -28,8 +28,8 @@ serve(async (req) => {
         // Import pdfjs from esm.sh which handles dependencies properly
         const pdfjsLib = await import('https://esm.sh/pdfjs-dist@4.0.379');
         
-        // Set worker - use esm.sh hosted worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@4.0.379/build/pdf.worker.min.js';
+        // Set worker - use unpkg CDN which has reliable worker file hosting
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
         
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
