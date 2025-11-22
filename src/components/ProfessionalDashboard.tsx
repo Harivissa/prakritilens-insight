@@ -451,7 +451,7 @@ export const ProfessionalDashboard = () => {
           </TabsContent>
 
           {/* Chat Tab */}
-          <TabsContent value="chat" className="h-[calc(100vh-22rem)]">
+          <TabsContent value="chat" className="h-[calc(100vh-24rem)] flex flex-col">
             <ContextAwareChat />
           </TabsContent>
 
