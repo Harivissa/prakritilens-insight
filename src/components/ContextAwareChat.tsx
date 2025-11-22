@@ -147,7 +147,7 @@ export const ContextAwareChat = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col h-full">
       {chats.length === 0 && !loading ? (
         /* Clean Welcome View */
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
@@ -263,13 +263,14 @@ export const ContextAwareChat = () => {
           </motion.div>
         </div>
       ) : (
-        /* Chat View */
-        <div className="flex-1 flex flex-col space-y-4">
-          {/* Compact Header */}
+        /* Chat View - Scrollable messages with fixed input */
+        <div className="flex flex-col h-full">
+          {/* Compact Header - Fixed */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
+            className="flex-shrink-0"
           >
             <Card className="gradient-card border-0 shadow-card">
               <CardHeader className="pb-3 pt-4">
@@ -311,17 +312,12 @@ export const ContextAwareChat = () => {
             </Card>
           </motion.div>
 
-          {/* Chat Messages Area */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex-1"
-          >
+          {/* Chat Messages Area - Scrollable */}
+          <div className="flex-1 overflow-hidden my-4">
             <Card className="gradient-card border-0 shadow-card h-full">
               <CardContent className="p-0 h-full">
                 <ScrollArea ref={scrollAreaRef} className="h-full p-6">
-                  <div className="space-y-6">
+                  <div className="space-y-6 pb-4">
                     {/* Loading State */}
                     {loading && (
                       <div className="flex items-center justify-center py-8">
@@ -426,62 +422,57 @@ export const ContextAwareChat = () => {
                 </ScrollArea>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
+
+          {/* Message Input - Fixed at bottom */}
+          <div className="flex-shrink-0">
+            <Card className="gradient-card border-0 shadow-card">
+              <CardContent className="p-4">
+                <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
+                  <div className="flex-1">
+                    <Textarea
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder={chats.length === 0 
+                        ? "What's on your mind? Ask Prakriti anything..."
+                        : "Continue your conversation with Prakriti..."}
+                      className="min-h-[60px] max-h-32 resize-none border-0 focus-visible:ring-1 focus-visible:ring-purple-500"
+                      disabled={sending}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(e);
+                        }
+                      }}
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    disabled={!message.trim() || sending}
+                    className="bg-gradient-to-br from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white shadow-lg"
+                  >
+                    {sending ? (
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
+                  </Button>
+                </form>
+                
+                <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500" />
+                    <span>Prakriti is online • Powered by OpenAI</span>
+                  </div>
+                  <div>
+                    Shift+Enter for new line
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
-
-      {/* Message Input */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.2 }}
-        className="mt-4"
-      >
-        <Card className="gradient-card border-0 shadow-card">
-          <CardContent className="p-4">
-            <form onSubmit={handleSendMessage} className="flex items-end space-x-3">
-              <div className="flex-1">
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder={chats.length === 0 
-                    ? "What's on your mind? Ask Prakriti anything..."
-                    : "Continue your conversation with Prakriti..."}
-                  className="min-h-[60px] max-h-32 resize-none border-0 focus-visible:ring-1 focus-visible:ring-purple-500"
-                  disabled={sending}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage(e);
-                    }
-                  }}
-                />
-              </div>
-              <Button 
-                type="submit" 
-                disabled={!message.trim() || sending}
-                className="bg-gradient-to-br from-purple-500 to-violet-600 hover:from-purple-600 hover:to-violet-700 text-white shadow-lg"
-              >
-                {sending ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </form>
-            
-            <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-green-500" />
-                <span>Prakriti is online • Powered by OpenAI</span>
-              </div>
-              <div>
-                Shift+Enter for new line
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
     </div>
   );
 };
