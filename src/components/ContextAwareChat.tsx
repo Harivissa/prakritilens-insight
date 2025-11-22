@@ -147,7 +147,7 @@ export const ContextAwareChat = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {chats.length === 0 && !loading ? (
         /* Clean Welcome View */
         <div className="flex-1 flex flex-col items-center justify-center px-4 py-12">
