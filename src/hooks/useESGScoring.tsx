@@ -156,7 +156,13 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
   try {
     console.log('Extracting text using backend service for:', file.name, file.type);
     
-    // Use backend edge function for all file types to avoid CORS/worker issues
+    // Get authenticated session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Please sign in again to continue');
+    }
+    
+    // Use FormData to send file to backend
     const formData = new FormData();
     formData.append('file', file);
     
@@ -165,7 +171,7 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
         },
         body: formData,
       }
@@ -173,6 +179,7 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      console.error('Backend extraction error:', errorData);
       throw new Error(errorData.error || `Failed to extract text: ${response.statusText}`);
     }
 
