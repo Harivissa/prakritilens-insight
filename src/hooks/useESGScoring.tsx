@@ -169,12 +169,21 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
       const arrayBuffer = await file.arrayBuffer();
       const pdfjsLib = await import('pdfjs-dist');
       
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+      // Use local worker instead of CDN to avoid CORS issues
+      const workerUrl = new URL(
+        'pdfjs-dist/build/pdf.worker.min.mjs',
+        import.meta.url
+      ).toString();
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+      
+      console.log('Loading PDF with worker:', workerUrl);
       
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let fullText = '';
       
       const numPages = Math.min(pdf.numPages, 100);
+      console.log(`Extracting text from ${numPages} pages...`);
+      
       for (let i = 1; i <= numPages; i++) {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
@@ -185,13 +194,15 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
       }
       
       if (fullText.trim().length === 0) {
-        throw new Error('No text could be extracted from PDF');
+        throw new Error('No text could be extracted from PDF. The PDF may be image-based or password-protected.');
       }
       
+      console.log(`Successfully extracted ${fullText.length} characters from PDF`);
       return { text: fullText, pageCount: pdf.numPages };
     } catch (error) {
       console.error('PDF parsing error:', error);
-      throw new Error('Unable to extract text from PDF. Please ensure it is not password-protected or scanned.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Unable to extract text from PDF: ${errorMessage}. Please ensure it is not password-protected or image-only.`);
     }
   }
   
@@ -219,7 +230,7 @@ export function useESGScoring() {
     setProgress({ stage: 'Extracting text...', percent: 10 });
     
     try {
-      console.log('Starting ESG analysis for:', file.name);
+      console.log('Starting ESG analysis for:', file.name, file.type, `${(file.size / 1024 / 1024).toFixed(2)}MB`);
       
       const { text: extractedText, pageCount } = await extractTextFromDocument(file);
       console.log('Text extracted:', extractedText.length, 'characters,', pageCount, 'pages');
@@ -265,6 +276,17 @@ export function useESGScoring() {
           `This document does not appear to be an ESG or sustainability report.\n\n${analysisData.message}\n\nPlease upload an official sustainability report, annual report with ESG section, or ESG disclosure document.`
         );
       }
+
+      if (!analysisData.scores || !analysisData.metadata) {
+        console.error('Invalid analysis data structure:', analysisData);
+        throw new Error('Invalid analysis response from server. Please try again.');
+      }
+
+      console.log('Analysis successful:', {
+        company: analysisData.metadata.company_name,
+        score: analysisData.scores.overall,
+        evidenceCount: analysisData.evidence?.length || 0
+      });
 
       setProgress({ stage: 'Generating embeddings...', percent: 70 });
       
