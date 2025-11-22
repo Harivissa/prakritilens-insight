@@ -235,6 +235,12 @@ export function useESGScoring() {
       
       setProgress({ stage: 'Analyzing ESG metrics...', percent: 40 });
       
+      // Get fresh session before calling edge function
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Please sign in again to continue');
+      }
+
       const { data: analysisData, error: analysisError } = await supabase.functions.invoke(
         'structured-esg-analysis',
         {
@@ -247,6 +253,10 @@ export function useESGScoring() {
       );
 
       if (analysisError) {
+        console.error('Analysis error details:', analysisError);
+        if (analysisError.message?.includes('Invalid Refresh Token') || analysisError.message?.includes('Refresh Token Not Found')) {
+          throw new Error('Your session has expired. Please sign in again.');
+        }
         throw new Error('Failed to analyze: ' + analysisError.message);
       }
 
