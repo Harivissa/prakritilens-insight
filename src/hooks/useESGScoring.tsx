@@ -153,72 +153,41 @@ function parseAIResponse(aiResponse: string) {
 }
 
 async function extractTextFromDocument(file: File): Promise<{ text: string; pageCount: number }> {
-  if (file.type === 'text/plain' || file.type === 'text/csv' || 
-      file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
-    const text = await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target?.result as string);
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    });
-    return { text, pageCount: Math.ceil(text.length / 3000) };
-  }
-  
-  if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdfjsLib = await import('pdfjs-dist');
-      
-      // Use local worker instead of CDN to avoid CORS issues
-      const workerUrl = new URL(
-        'pdfjs-dist/build/pdf.worker.min.mjs',
-        import.meta.url
-      ).toString();
-      pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
-      
-      console.log('Loading PDF with worker:', workerUrl);
-      
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      
-      const numPages = Math.min(pdf.numPages, 100);
-      console.log(`Extracting text from ${numPages} pages...`);
-      
-      for (let i = 1; i <= numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items
-          .map((item: any) => item.str)
-          .join(' ');
-        fullText += `\n[Page ${i}]\n` + pageText;
+  try {
+    console.log('Extracting text using backend service for:', file.name, file.type);
+    
+    // Use backend edge function for all file types to avoid CORS/worker issues
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-pdf-text`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: formData,
       }
-      
-      if (fullText.trim().length === 0) {
-        throw new Error('No text could be extracted from PDF. The PDF may be image-based or password-protected.');
-      }
-      
-      console.log(`Successfully extracted ${fullText.length} characters from PDF`);
-      return { text: fullText, pageCount: pdf.numPages };
-    } catch (error) {
-      console.error('PDF parsing error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      throw new Error(`Unable to extract text from PDF: ${errorMessage}. Please ensure it is not password-protected or image-only.`);
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(errorData.error || `Failed to extract text: ${response.statusText}`);
     }
+
+    const data = await response.json();
+    console.log(`Successfully extracted ${data.text.length} characters, ${data.pageCount} pages`);
+    
+    return {
+      text: data.text,
+      pageCount: data.pageCount
+    };
+  } catch (error) {
+    console.error('Text extraction error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Unable to extract text from document: ${errorMessage}`);
   }
-  
-  if (file.name.endsWith('.docx')) {
-    try {
-      const mammoth = await import('mammoth');
-      const arrayBuffer = await file.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      return { text: result.value, pageCount: Math.ceil(result.value.length / 3000) };
-    } catch (error) {
-      console.error('DOCX parsing error:', error);
-      throw new Error('Unable to extract text from DOCX file');
-    }
-  }
-  
-  throw new Error(`Unsupported file type: ${file.type}. Please upload PDF, DOCX, TXT, or CSV.`);
 }
 
 export function useESGScoring() {
