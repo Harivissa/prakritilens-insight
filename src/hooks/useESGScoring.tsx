@@ -152,7 +152,10 @@ function parseAIResponse(aiResponse: string) {
   };
 }
 
-async function extractTextFromDocument(file: File): Promise<{ text: string; pageCount: number }> {
+async function extractTextFromDocument(
+  file: File, 
+  onProgress?: (current: number, total: number, message: string) => void
+): Promise<{ text: string; pageCount: number }> {
   try {
     console.log('Extracting text using backend service for:', file.name, file.type);
     
@@ -167,7 +170,7 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
     formData.append('file', file);
     
     const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-pdf-text`,
+      `https://rtztgxtqlyrixmskozfi.supabase.co/functions/v1/extract-pdf-text?stream=true`,
       {
         method: 'POST',
         headers: {
@@ -183,13 +186,53 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
       throw new Error(errorData.error || `Failed to extract text: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    console.log(`Successfully extracted ${data.text.length} characters, ${data.pageCount} pages`);
-    
-    return {
-      text: data.text,
-      pageCount: data.pageCount
-    };
+    // Check if response is streaming
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('text/event-stream')) {
+      // Handle streaming response with progress updates
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let extractedText = '';
+      let totalPages = 0;
+
+      if (!reader) throw new Error('No reader available');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = JSON.parse(line.slice(6));
+            
+            if (data.type === 'progress') {
+              // Call progress callback
+              if (onProgress) {
+                onProgress(data.current, data.total, data.message);
+              }
+            } else if (data.type === 'complete') {
+              extractedText = data.text;
+              totalPages = data.pageCount;
+            } else if (data.type === 'error') {
+              throw new Error(data.message);
+            }
+          }
+        }
+      }
+
+      console.log(`Successfully extracted ${extractedText.length} characters, ${totalPages} pages`);
+      return { text: extractedText, pageCount: totalPages };
+    } else {
+      // Fallback to non-streaming response
+      const data = await response.json();
+      console.log(`Successfully extracted ${data.text.length} characters, ${data.pageCount} pages`);
+      return { text: data.text, pageCount: data.pageCount };
+    }
   } catch (error) {
     console.error('Text extraction error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -199,18 +242,30 @@ async function extractTextFromDocument(file: File): Promise<{ text: string; page
 
 export function useESGScoring() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [progress, setProgress] = useState({ stage: '', percent: 0 });
+  const [progress, setProgress] = useState<{ stage: string; percent: number; details?: string }>({ 
+    stage: '', 
+    percent: 0 
+  });
 
   const analyzeDocument = async (file: File) => {
     setIsAnalyzing(true);
-    setProgress({ stage: 'Extracting text...', percent: 10 });
+    setProgress({ stage: 'Starting extraction...', percent: 5, details: 'Preparing document' });
     
     try {
       console.log('Starting ESG analysis for:', file.name, file.type, `${(file.size / 1024 / 1024).toFixed(2)}MB`);
       
-      const { text: extractedText, pageCount } = await extractTextFromDocument(file);
+      // Extract text with progress callback
+      const { text: extractedText, pageCount } = await extractTextFromDocument(file, (current, total, message) => {
+        const percent = 10 + (current / total) * 20; // 10-30% for extraction
+        setProgress({ 
+          stage: 'Extracting PDF text', 
+          percent, 
+          details: `Page ${current} of ${total}` 
+        });
+      });
+      
       console.log('Text extracted:', extractedText.length, 'characters,', pageCount, 'pages');
-      setProgress({ stage: 'Validating document...', percent: 30 });
+      setProgress({ stage: 'Validating document...', percent: 35, details: `Extracted ${pageCount} pages` });
       
       const validation = validateESGDocument(extractedText, file.name);
       console.log('Document validation:', validation);
