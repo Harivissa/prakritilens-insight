@@ -450,8 +450,8 @@ export const ProfessionalDashboard = () => {
             <ProfessionalFileUpload />
           </TabsContent>
 
-          {/* Chat Tab */}
-          <TabsContent value="chat" className="h-[calc(100vh-24rem)] flex flex-col">
+          {/* Chat Tab - Full height like ChatGPT */}
+          <TabsContent value="chat" className="h-[calc(100vh-12rem)] p-0">
             <ContextAwareChat />
           </TabsContent>
 
@@ -603,9 +603,6 @@ export const ProfessionalDashboard = () => {
 
       {/* Voice Assistant */}
       <VoiceAssistant />
-
-      {/* Professional Footer */}
-      <Footer />
     </div>
   );
 };

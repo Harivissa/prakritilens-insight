@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -12,41 +12,28 @@ export interface Chat {
   created_at: string;
 }
 
+// Non-persistent chat hook - each session starts fresh  
 export const useChats = () => {
   const { user } = useAuth();
   const [chats, setChats] = useState<Chat[]>([]);
-  const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
-
-  const fetchChats = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('chats')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setChats(data || []);
-    } catch (error: any) {
-      console.error('Error fetching chats:', error);
-      toast({
-        title: "Error fetching chat history",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const sendMessage = async (message: string): Promise<string> => {
     if (!user) throw new Error('User not authenticated');
 
+    // Add user message to temporary state immediately
+    const userMessage: Chat = {
+      id: `temp-${Date.now()}`,
+      user_id: user.id,
+      message,
+      response: '',
+      metadata: null,
+      created_at: new Date().toISOString()
+    };
+    
+    setChats(prev => [...prev, userMessage]);
     setSending(true);
+
     try {
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: { message }
@@ -54,12 +41,29 @@ export const useChats = () => {
 
       if (error) throw error;
 
-      // Refresh chats to get the latest conversation
-      await fetchChats();
+      // Update with AI response in temporary state
+      const aiResponse: Chat = {
+        id: `temp-response-${Date.now()}`,
+        user_id: user.id,
+        message,
+        response: data.response,
+        metadata: null,
+        created_at: new Date().toISOString()
+      };
+
+      // Replace the user message with the complete chat entry
+      setChats(prev => {
+        const filtered = prev.filter(c => c.id !== userMessage.id);
+        return [...filtered, aiResponse];
+      });
       
       return data.response;
     } catch (error: any) {
       console.error('Error sending message:', error);
+      
+      // Remove failed message
+      setChats(prev => prev.filter(c => c.id !== userMessage.id));
+      
       toast({
         title: "Error sending message",
         description: error.message || "Failed to send message to AI assistant",
@@ -72,42 +76,20 @@ export const useChats = () => {
   };
 
   const clearChats = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('chats')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      setChats([]);
-      toast({
-        title: "Chat history cleared",
-        description: "All chat messages have been deleted.",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error clearing chats",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    // Just clear local state - no database operations
+    setChats([]);
+    toast({
+      title: "Chat cleared",
+      description: "Conversation has been reset.",
+    });
   };
-
-  useEffect(() => {
-    if (user) {
-      fetchChats();
-    }
-  }, [user]);
 
   return {
     chats,
-    loading,
+    loading: false, // No loading since we don't fetch history
     sending,
     sendMessage,
     clearChats,
-    fetchChats
+    fetchChats: () => {} // No-op since we don't persist
   };
 };
