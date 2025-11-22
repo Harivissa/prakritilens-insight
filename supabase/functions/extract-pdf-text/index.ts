@@ -60,6 +60,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Check if this is a progress stream request
+  const url = new URL(req.url);
+  const isProgressStream = url.searchParams.get('stream') === 'true';
+
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
@@ -75,11 +79,11 @@ serve(async (req) => {
       try {
         const arrayBuffer = await file.arrayBuffer();
         
-        // Import pdfjs from esm.sh which handles dependencies properly
-        const pdfjsLib = await import('https://esm.sh/pdfjs-dist@4.0.379');
+        // Import pdfjs from cdn.jsdelivr.net for reliable hosting
+        const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/+esm');
         
-        // Set worker - use unpkg CDN which has reliable worker file hosting
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
+        // Set worker - use jsdelivr CDN which has reliable worker file hosting
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.379/build/pdf.worker.min.mjs';
         
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let fullText = '';
@@ -88,6 +92,75 @@ serve(async (req) => {
         const numPages = Math.min(pdf.numPages, 100);
         console.log(`Processing ${numPages} pages (with OCR support)...`);
         
+        // If streaming progress, create a readable stream
+        if (isProgressStream) {
+          const stream = new ReadableStream({
+            async start(controller) {
+              const encoder = new TextEncoder();
+              
+              // Send initial progress
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+                type: 'progress', 
+                current: 0, 
+                total: numPages,
+                message: 'Starting PDF extraction...' 
+              })}\n\n`));
+              
+              try {
+                for (let i = 1; i <= numPages; i++) {
+                  const page = await pdf.getPage(i);
+                  
+                  // Extract regular text
+                  const textContent = await page.getTextContent();
+                  const pageText = textContent.items
+                    .map((item: any) => item.str || '')
+                    .join(' ');
+                  fullText += `\n[Page ${i}]\n${pageText}`;
+                  
+                  // Send progress update
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+                    type: 'progress', 
+                    current: i, 
+                    total: numPages,
+                    message: `Processed page ${i} of ${numPages}` 
+                  })}\n\n`));
+                  
+                  // If page has little text, note it for potential OCR
+                  if (pageText.trim().length < 100) {
+                    console.log(`Page ${i} has minimal text (${pageText.trim().length} chars)`);
+                  }
+                }
+                
+                // Send completion
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+                  type: 'complete',
+                  text: fullText,
+                  pageCount: pdf.numPages,
+                  ocrEnabled: false
+                })}\n\n`));
+                
+                controller.close();
+              } catch (error) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ 
+                  type: 'error',
+                  message: error instanceof Error ? error.message : 'Unknown error'
+                })}\n\n`));
+                controller.close();
+              }
+            }
+          });
+          
+          return new Response(stream, {
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'text/event-stream',
+              'Cache-Control': 'no-cache',
+              'Connection': 'keep-alive'
+            }
+          });
+        }
+        
+        // Non-streaming mode (original behavior)
         for (let i = 1; i <= numPages; i++) {
           const page = await pdf.getPage(i);
           
@@ -98,28 +171,9 @@ serve(async (req) => {
             .join(' ');
           fullText += `\n[Page ${i}]\n${pageText}`;
           
-          // If page has little text, it might be image-based - perform OCR
+          // If page has little text, it might be image-based
           if (pageText.trim().length < 100) {
-            try {
-              console.log(`Page ${i} has minimal text, attempting OCR...`);
-              
-              // Render the page to get a visual representation
-              const viewport = page.getViewport({ scale: 1.5 });
-              
-              // Create a simple canvas representation
-              const canvasWidth = Math.floor(viewport.width);
-              const canvasHeight = Math.floor(viewport.height);
-              
-              // Note: In a real scenario, we would need actual canvas rendering
-              // For now, we'll indicate that OCR was attempted
-              // The actual image extraction from PDF.js in Deno environment is limited
-              
-              console.log(`Would perform OCR on page ${i} (${canvasWidth}x${canvasHeight})`);
-              // OCR implementation would go here when we can properly extract image data
-              
-            } catch (ocrError) {
-              console.warn(`Could not perform OCR on page ${i}:`, ocrError);
-            }
+            console.log(`Page ${i} has minimal text (${pageText.trim().length} chars)`);
           }
         }
         
