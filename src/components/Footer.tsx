@@ -23,7 +23,7 @@ export const Footer = () => {
             transition={{ duration: 0.5 }}
           >
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
+              <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-elegant">
                 <Globe className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
