@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,11 +7,14 @@ import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Download, FileText, AlertTriangle, Target, Lightbulb,
-  BarChart3, Globe, Users, Shield, BookOpen, TrendingUp, CheckCircle2, XCircle
+  BarChart3, Globe, Users, Shield, BookOpen, TrendingUp, CheckCircle2, XCircle, FileSpreadsheet, ChevronDown
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { downloadRealESGPDF, downloadRealESGCSV, RealESGReportData } from '@/utils/realEsgPdfGenerator';
+import { toast } from 'sonner';
 
 interface Evidence {
   category: string;
@@ -496,10 +499,37 @@ export const RealESGReport: React.FC<RealESGReportProps> = ({ isOpen, onClose, r
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          <Button>
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <Download className="h-4 w-4 mr-2" />
+                Export Report
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => {
+                downloadRealESGPDF({
+                  ...reportData,
+                  fileName
+                } as RealESGReportData);
+                toast.success('PDF report downloaded successfully');
+              }}>
+                <FileText className="h-4 w-4 mr-2" />
+                Download as PDF (HTML)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                downloadRealESGCSV({
+                  ...reportData,
+                  fileName
+                } as RealESGReportData);
+                toast.success('CSV report downloaded successfully');
+              }}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Download as CSV
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </DialogContent>
     </Dialog>
