@@ -2,18 +2,31 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Play, Upload, MessageSquare, TrendingUp, Shield, Zap, Users, CheckCircle2, Star, Globe, BarChart3 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowRight, Play, Upload, MessageSquare, TrendingUp, Shield, Zap, Users, CheckCircle2, Star, Globe, BarChart3, Send, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AuthModal } from './AuthModal';
 import { Footer } from './Footer';
+import { toast } from 'sonner';
+import { z } from 'zod';
 
 interface ProfessionalLandingProps {
   onGetStarted?: () => void;
 }
 
+// Contact form validation schema
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name must be less than 100 characters"),
+  email: z.string().trim().email("Invalid email address").max(255, "Email must be less than 255 characters"),
+  message: z.string().trim().min(1, "Message is required").max(1000, "Message must be less than 1000 characters")
+});
+
 export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) => {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+  const [contactForm, setContactForm] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleGetStarted = () => {
     setAuthMode('signup');
@@ -29,6 +42,26 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   const handleWatchDemo = () => {
     // Smooth scroll to features section
     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form
+    const result = contactSchema.safeParse(contactForm);
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    // Simulate form submission (in production, send to backend/email service)
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    toast.success("Thank you for your message! We'll get back to you soon.");
+    setContactForm({ name: '', email: '', message: '' });
+    setIsSubmitting(false);
   };
 
   // Animation variants
@@ -106,8 +139,8 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             transition={{ duration: 0.5, delay: 0.2 }}
           >
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-smooth">Features</a>
-            <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-smooth">Reviews</a>
-            <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-smooth">Pricing</a>
+            <a href="#about" className="text-muted-foreground hover:text-foreground transition-smooth">About</a>
+            <a href="#contact" className="text-muted-foreground hover:text-foreground transition-smooth">Contact</a>
             <Button variant="ghost" onClick={handleSignIn}>Sign In</Button>
             <Button onClick={handleGetStarted} className="shadow-elegant">
               Get Started <ArrowRight className="w-4 h-4 ml-2" />
@@ -350,6 +383,112 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         </div>
       </section>
 
+      {/* Contact Us Section */}
+      <section id="contact" className="py-20 px-4 bg-[#000000]">
+        <div className="container mx-auto max-w-4xl">
+          <motion.div 
+            className="text-center mb-12"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Badge variant="secondary" className="mb-4">📬 Get in Touch</Badge>
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+              <span className="text-white">Contact </span>
+              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Us</span>
+            </h2>
+            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+              Have questions about our ESG platform? We'd love to hear from you.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="max-w-xl mx-auto"
+          >
+            <Card className="bg-gradient-to-br from-gray-900/80 via-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-white/10">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-emerald-400" />
+                  Send us a Message
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Fill out the form below and we'll get back to you as soon as possible.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="text-sm font-medium text-gray-300">
+                      Name
+                    </label>
+                    <Input
+                      id="name"
+                      placeholder="Your name"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500/50"
+                      maxLength={100}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="email" className="text-sm font-medium text-gray-300">
+                      Email
+                    </label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500/50"
+                      maxLength={255}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label htmlFor="message" className="text-sm font-medium text-gray-300">
+                      Message
+                    </label>
+                    <Textarea
+                      id="message"
+                      placeholder="Your question or message..."
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
+                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500/50 min-h-[120px]"
+                      maxLength={1000}
+                    />
+                    <p className="text-xs text-gray-500 text-right">
+                      {contactForm.message.length}/1000
+                    </p>
+                  </div>
+
+                  <Button 
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all duration-300"
+                  >
+                    {isSubmitting ? (
+                      <>Sending...</>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 bg-[#000000] text-white relative overflow-hidden">
         {/* Animated background elements */}
@@ -411,70 +550,6 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
           </motion.div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-[#000000] py-16 px-4 border-t border-white/10">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-lg font-bold">PrakritiLens</span>
-              </div>
-              <p className="text-muted-foreground mb-4">
-                AI-powered ESG analytics platform built for transparency and sustainability.
-              </p>
-              <p className="text-sm text-emerald-600 font-medium">
-                Powered by OpenAI
-              </p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-smooth">Features</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Pricing</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">API</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Integrations</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-smooth">About Us</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Careers</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Contact</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Blog</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-smooth">Help Center</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Documentation</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-foreground transition-smooth">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-border pt-8">
-            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-              <p className="text-sm text-muted-foreground">
-                &copy; {new Date().getFullYear()} PrakritiLens. All rights reserved.
-              </p>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-400">Made by</span>
-                <span className="text-sm font-semibold text-emerald-400">Hari Vissa & Michelle</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
 
       {/* Auth Modal */}
       <AuthModal 
