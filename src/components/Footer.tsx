@@ -1,8 +1,15 @@
-import { Globe, Sparkles, Leaf } from 'lucide-react';
+import { Globe, Sparkles, Leaf, Linkedin, Twitter, Github, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <footer className="relative mt-auto border-t border-border bg-gradient-to-br from-background via-background to-muted/20">
@@ -13,7 +20,7 @@ export const Footer = () => {
       </div>
 
       <div className="container mx-auto px-4 py-12 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           {/* Brand Section */}
           <motion.div 
             className="space-y-4"
@@ -34,6 +41,49 @@ export const Footer = () => {
               AI-Powered ESG Analytics Platform transforming sustainability reporting 
               with cutting-edge technology and professional insights.
             </p>
+            
+            {/* Social Media Links */}
+            <div className="flex items-center space-x-3 pt-2">
+              <motion.a
+                href="https://www.linkedin.com/in/harivissa"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-muted/50 border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-smooth"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Linkedin className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                href="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-muted/50 border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-smooth"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Twitter className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                href="https://github.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-9 h-9 rounded-lg bg-muted/50 border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-smooth"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Github className="w-4 h-4" />
+              </motion.a>
+              <motion.a
+                href="#contact"
+                onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}
+                className="w-9 h-9 rounded-lg bg-muted/50 border border-border flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 hover:border-primary/30 transition-smooth"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Mail className="w-4 h-4" />
+              </motion.a>
+            </div>
           </motion.div>
 
           {/* Quick Links */}
@@ -50,24 +100,36 @@ export const Footer = () => {
             </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#features" className="hover:text-primary transition-smooth inline-flex items-center group">
+                <button 
+                  onClick={() => scrollToSection('features')} 
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
                   <span className="border-b border-transparent group-hover:border-primary transition-smooth">Features</span>
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#about" className="hover:text-primary transition-smooth inline-flex items-center group">
+                <button 
+                  onClick={() => scrollToSection('about')} 
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
                   <span className="border-b border-transparent group-hover:border-primary transition-smooth">About Us</span>
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#pricing" className="hover:text-primary transition-smooth inline-flex items-center group">
+                <button 
+                  onClick={() => scrollToSection('pricing')} 
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
                   <span className="border-b border-transparent group-hover:border-primary transition-smooth">Pricing</span>
-                </a>
+                </button>
               </li>
               <li>
-                <a href="#contact" className="hover:text-primary transition-smooth inline-flex items-center group">
+                <button 
+                  onClick={() => scrollToSection('contact')} 
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
                   <span className="border-b border-transparent group-hover:border-primary transition-smooth">Contact</span>
-                </a>
+                </button>
               </li>
             </ul>
           </motion.div>
@@ -83,7 +145,12 @@ export const Footer = () => {
             <h4 className="font-semibold text-foreground">Resources</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <a href="#" className="hover:text-primary transition-smooth inline-flex items-center group">
+                <a 
+                  href="https://docs.lovable.dev" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
                   <span className="border-b border-transparent group-hover:border-primary transition-smooth">Documentation</span>
                 </a>
               </li>
@@ -98,9 +165,67 @@ export const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-smooth inline-flex items-center group">
+                <button 
+                  onClick={() => scrollToSection('contact')} 
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
                   <span className="border-b border-transparent group-hover:border-primary transition-smooth">Support</span>
+                </button>
+              </li>
+            </ul>
+          </motion.div>
+
+          {/* Connect */}
+          <motion.div
+            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <h4 className="font-semibold text-foreground">Connect</h4>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li>
+                <a 
+                  href="https://www.linkedin.com/in/harivissa" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
+                  <Linkedin className="w-3.5 h-3.5 mr-2" />
+                  <span className="border-b border-transparent group-hover:border-primary transition-smooth">LinkedIn</span>
                 </a>
+              </li>
+              <li>
+                <a 
+                  href="https://twitter.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
+                  <Twitter className="w-3.5 h-3.5 mr-2" />
+                  <span className="border-b border-transparent group-hover:border-primary transition-smooth">Twitter</span>
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="https://github.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
+                  <Github className="w-3.5 h-3.5 mr-2" />
+                  <span className="border-b border-transparent group-hover:border-primary transition-smooth">GitHub</span>
+                </a>
+              </li>
+              <li>
+                <button 
+                  onClick={() => scrollToSection('contact')}
+                  className="hover:text-primary transition-smooth inline-flex items-center group"
+                >
+                  <Mail className="w-3.5 h-3.5 mr-2" />
+                  <span className="border-b border-transparent group-hover:border-primary transition-smooth">Contact Us</span>
+                </button>
               </li>
             </ul>
           </motion.div>
@@ -128,18 +253,17 @@ export const Footer = () => {
               <span className="text-muted-foreground">Built by</span>
               <div className="flex items-center space-x-2">
                 <a 
-                  href="#" 
+                  href="https://www.linkedin.com/in/harivissa" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="font-semibold bg-gradient-to-r from-blue-600 via-purple-600 to-orange-600 bg-clip-text text-transparent hover:from-blue-700 hover:via-purple-700 hover:to-orange-700 transition-smooth"
                 >
                   Hari Vissa
                 </a>
                 <span className="text-muted-foreground">&</span>
-                <a 
-                  href="#" 
-                  className="font-semibold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent hover:from-purple-700 hover:via-pink-700 hover:to-blue-700 transition-smooth"
-                >
+                <span className="font-semibold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent">
                   Michelle
-                </a>
+                </span>
               </div>
             </motion.div>
 
