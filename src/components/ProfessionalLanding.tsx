@@ -10,6 +10,7 @@ import { AuthModal } from './AuthModal';
 import { Footer } from './Footer';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ProfessionalLandingProps {
   onGetStarted?: () => void;
@@ -56,12 +57,43 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
 
     setIsSubmitting(true);
     
-    // Simulate form submission (in production, send to backend/email service)
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    toast.success("Thank you for your message! We'll get back to you soon.");
-    setContactForm({ name: '', email: '', message: '' });
-    setIsSubmitting(false);
+    try {
+      // Save to Supabase database
+      const { error: dbError } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: contactForm.name,
+          email: contactForm.email,
+          message: contactForm.message,
+        });
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+        throw new Error('Failed to save your message');
+      }
+
+      // Send email notifications via edge function
+      const { error: emailError } = await supabase.functions.invoke('send-contact-notification', {
+        body: {
+          name: contactForm.name,
+          email: contactForm.email,
+          message: contactForm.message,
+        },
+      });
+
+      if (emailError) {
+        console.error('Email error:', emailError);
+        // Don't throw - message was saved, just email failed
+      }
+      
+      toast.success("Thank you for your message! We'll get back to you soon.");
+      setContactForm({ name: '', email: '', message: '' });
+    } catch (error: any) {
+      console.error('Contact form error:', error);
+      toast.error(error.message || 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Animation variants
