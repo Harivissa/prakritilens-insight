@@ -85,3 +85,6 @@ verify_jwt = false
 
 [functions.extract-pdf-text]
 verify_jwt = true
+
+[functions.send-contact-notification]
+verify_jwt = false
