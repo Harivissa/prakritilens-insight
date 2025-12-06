@@ -88,3 +88,6 @@ verify_jwt = true
 
 [functions.send-contact-notification]
 verify_jwt = false
+
+[functions.validate-document]
+verify_jwt = true

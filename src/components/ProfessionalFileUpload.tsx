@@ -9,19 +9,22 @@ import { Separator } from '@/components/ui/separator';
 import { 
   Upload, FileText, Image, AlertCircle, CheckCircle2, X, 
   Eye, Download, Trash2, RefreshCw, Zap, BarChart3,
-  TrendingUp, TrendingDown, Activity, PieChart
+  TrendingUp, TrendingDown, Activity, PieChart, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReports } from '@/hooks/useReports';
 import { useESGScoring } from '@/hooks/useESGScoring';
+import { useDocumentValidation } from '@/hooks/useDocumentValidation';
+import { DocumentValidationResult, type ValidationResult } from '@/components/DocumentValidationResult';
 import { toast } from '@/hooks/use-toast';
 
 interface UploadedFile {
   id: string;
   file: File;
-  status: 'uploading' | 'processing' | 'completed' | 'error';
+  status: 'validating' | 'validated' | 'uploading' | 'processing' | 'completed' | 'error' | 'rejected';
   progress: number;
   error?: string;
+  validationResult?: ValidationResult;
   analysis?: {
     score: number;
     breakdown: {
@@ -38,37 +41,64 @@ interface UploadedFile {
 export const ProfessionalFileUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
+  const [pendingValidation, setPendingValidation] = useState<UploadedFile | null>(null);
   const { saveReport, uploadFile } = useReports();
   const { analyzeDocument, isAnalyzing } = useESGScoring();
+  const { validateDocument, isValidating } = useDocumentValidation();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newFiles: UploadedFile[] = acceptedFiles.map(file => ({
-      id: Math.random().toString(36).substr(2, 9),
-      file,
-      status: 'uploading',
-      progress: 0
-    }));
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    // Process files one by one for validation
+    for (const file of acceptedFiles) {
+      const fileData: UploadedFile = {
+        id: Math.random().toString(36).substr(2, 9),
+        file,
+        status: 'validating',
+        progress: 0
+      };
 
-    setUploadedFiles(prev => [...prev, ...newFiles]);
+      setUploadedFiles(prev => [...prev, fileData]);
+      
+      // Run validation
+      const result = await validateDocument(file);
+      
+      if (result) {
+        setUploadedFiles(prev => 
+          prev.map(f => f.id === fileData.id ? { 
+            ...f, 
+            status: 'validated',
+            validationResult: result 
+          } : f)
+        );
+        
+        // Show validation modal for user decision
+        setPendingValidation({ ...fileData, validationResult: result });
+      } else {
+        setUploadedFiles(prev => 
+          prev.map(f => f.id === fileData.id ? { 
+            ...f, 
+            status: 'error',
+            error: 'Document validation failed. Please try again.' 
+          } : f)
+        );
+      }
+    }
+  }, [validateDocument]);
 
-    // Process each file
-    newFiles.forEach(fileData => {
-      simulateFileProcessing(fileData);
-    });
-  }, []);
-
-  const simulateFileProcessing = async (fileData: UploadedFile) => {
+  // Handler for when user approves validation and wants to proceed
+  const handleProceedWithAnalysis = useCallback(async (fileData: UploadedFile) => {
+    setPendingValidation(null);
+    
     try {
       const fileSize = fileData.file.size;
-      const isLargeFile = fileSize > 10 * 1024 * 1024; // 10MB+ - no restrictions, just for progress display
+      const isLargeFile = fileSize > 10 * 1024 * 1024;
       
-      // Simulate upload progress with adjusted timing for large files
+      // Update status to uploading
       setUploadedFiles(prev => 
-        prev.map(f => f.id === fileData.id ? { ...f, status: 'uploading' } : f)
+        prev.map(f => f.id === fileData.id ? { ...f, status: 'uploading', progress: 0 } : f)
       );
 
-      const uploadSteps = isLargeFile ? 30 : 10; // More granular progress for large files
-      const uploadDelay = isLargeFile ? 150 : 50; // Better UX for large files
+      const uploadSteps = isLargeFile ? 30 : 10;
+      const uploadDelay = isLargeFile ? 150 : 50;
       
       for (let step = 0; step <= uploadSteps; step++) {
         const progress = (step / uploadSteps) * 100;
@@ -78,27 +108,20 @@ export const ProfessionalFileUpload = () => {
         );
       }
 
-      // Start analysis with status update
+      // Start analysis
       setUploadedFiles(prev => 
-        prev.map(f => f.id === fileData.id ? { 
-          ...f, 
-          status: 'processing', 
-          progress: 0 
-        } : f)
+        prev.map(f => f.id === fileData.id ? { ...f, status: 'processing', progress: 0 } : f)
       );
 
-      // Show processing message for large files
       if (isLargeFile) {
         toast({
           title: "Processing Large File",
-          description: `Analyzing ${fileData.file.name} - this may take a moment for large documents.`,
+          description: `Analyzing ${fileData.file.name} - this may take a moment.`,
         });
       }
 
-      // Perform ESG analysis
       const analysis = await analyzeDocument(fileData.file);
 
-      // Simulate processing progress with realistic timing for large files
       const processSteps = isLargeFile ? 25 : 5;
       const processDelay = isLargeFile ? 400 : 200;
       
@@ -110,10 +133,8 @@ export const ProfessionalFileUpload = () => {
         );
       }
 
-      // Upload file to storage
       const storedUrl = await uploadFile(fileData.file);
 
-      // Complete processing
       setUploadedFiles(prev => 
         prev.map(f => f.id === fileData.id ? { 
           ...f, 
@@ -123,8 +144,9 @@ export const ProfessionalFileUpload = () => {
         } : f)
       );
 
-      // Save to database with actual company name from analysis
-      const companyName = analysis.metadata?.company_name || 
+      // Use company name from validation if available
+      const companyName = fileData.validationResult?.company_name || 
+                          analysis.metadata?.company_name || 
                           fileData.file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
       
       await saveReport({
@@ -136,8 +158,7 @@ export const ProfessionalFileUpload = () => {
         analysis_data: analysis
       });
 
-      // Get company name for better user feedback
-      const displayName = analysis.metadata?.company_name || fileData.file.name;
+      const displayName = companyName;
       const scoreRating = analysis.score >= 80 ? '🌟 Excellent' : 
                           analysis.score >= 60 ? '✓ Good' : 
                           analysis.score >= 40 ? '⚠ Fair' : '⚠ Needs Improvement';
@@ -151,14 +172,8 @@ export const ProfessionalFileUpload = () => {
       console.error('File processing error:', error);
       
       let errorMessage = 'Analysis failed. Please try again.';
-      
-      // Provide specific error messages based on the error
-      if (error.message?.includes('file too large')) {
-        errorMessage = 'File is too large for processing. Please try a smaller file or contact support.';
-      } else if (error.message?.includes('network')) {
-        errorMessage = 'Network error during upload. Please check your connection and try again.';
-      } else if (error.message?.includes('storage')) {
-        errorMessage = 'Storage error. Please try again or contact support if the issue persists.';
+      if (error.message?.includes('network')) {
+        errorMessage = 'Network error. Please check your connection.';
       }
       
       setUploadedFiles(prev => 
@@ -175,7 +190,15 @@ export const ProfessionalFileUpload = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [analyzeDocument, uploadFile, saveReport]);
+
+  // Handler for when user rejects/cancels validation
+  const handleRejectValidation = useCallback((fileId: string) => {
+    setPendingValidation(null);
+    setUploadedFiles(prev => 
+      prev.map(f => f.id === fileId ? { ...f, status: 'rejected' } : f)
+    );
+  }, []);
 
   const removeFile = (id: string) => {
     setUploadedFiles(prev => prev.filter(f => f.id !== id));
@@ -187,7 +210,7 @@ export const ProfessionalFileUpload = () => {
       setUploadedFiles(prev => 
         prev.map(f => f.id === id ? { ...f, status: 'uploading', progress: 0, error: undefined } : f)
       );
-      simulateFileProcessing(file);
+      handleProceedWithAnalysis(file);
     }
   };
 
@@ -280,6 +303,32 @@ export const ProfessionalFileUpload = () => {
 
   return (
     <div className="space-y-6">
+      {/* Validation Modal */}
+      <AnimatePresence>
+        {pendingValidation && pendingValidation.validationResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          >
+            <div className="max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <DocumentValidationResult
+                result={pendingValidation.validationResult}
+                fileName={pendingValidation.file.name}
+                onProceed={() => handleProceedWithAnalysis(pendingValidation)}
+                onReject={() => handleRejectValidation(pendingValidation.id)}
+                onRetry={() => {
+                  handleRejectValidation(pendingValidation.id);
+                  removeFile(pendingValidation.id);
+                }}
+                isLoading={isAnalyzing}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
