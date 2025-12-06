@@ -94,7 +94,7 @@ serve(async (req) => {
       if (queryEmbedding) {
         // Perform similarity search using the embedding
         // For now, use a simpler approach - get chunks and filter by keywords
-        const keywords = message.toLowerCase().split(' ').filter(w => w.length > 3);
+        const keywords: string[] = message.toLowerCase().split(' ').filter((w: string) => w.length > 3);
         
         const { data: chunks, error: chunksError } = await supabaseClient
           .from('document_embeddings')
@@ -108,7 +108,7 @@ serve(async (req) => {
           // Score chunks by keyword relevance
           const scoredChunks = chunks.map(chunk => {
             const text = chunk.chunk_text.toLowerCase();
-            const score = keywords.reduce((acc, keyword) => {
+            const score = keywords.reduce((acc: number, keyword: string) => {
               return acc + (text.includes(keyword) ? 1 : 0);
             }, 0);
             return { ...chunk, relevanceScore: score };
