@@ -5,83 +5,15 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Use OpenAI to extract text from PDF via vision API
-async function extractPdfWithAI(pdfBase64: string, fileName: string): Promise<{ text: string; pageCount: number }> {
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
-  
-  if (!OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY not configured');
-  }
-
-  console.log('Using AI-based PDF text extraction for:', fileName);
-  
-  // For large PDFs, we'll extract text in chunks using a simpler approach
-  // First, try to parse the PDF structure to get raw text
-  const pdfBytes = Uint8Array.from(atob(pdfBase64), c => c.charCodeAt(0));
-  const pdfText = extractTextFromPdfBytes(pdfBytes);
-  
-  if (pdfText.length > 500) {
-    console.log(`Extracted ${pdfText.length} chars using binary parsing`);
-    const pageCount = (pdfText.match(/\[Page \d+\]/g) || []).length || Math.ceil(pdfText.length / 3000);
-    return { text: pdfText, pageCount };
-  }
-  
-  // Fallback: Use AI for text extraction summary
-  console.log('Binary extraction yielded minimal text, using AI fallback');
-  
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a document text extractor. Extract and return all readable text from the document. Preserve structure with page markers like [Page 1], [Page 2], etc. Return only the extracted text.'
-          },
-          {
-            role: 'user',
-            content: `This is a PDF document named "${fileName}". Based on the filename and any context, this appears to be a sustainability or ESG report. Please acknowledge that you understand this is a PDF extraction request and provide any text content you can identify from the document structure.`
-          }
-        ],
-        max_tokens: 4000,
-      }),
-    });
-
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
-      throw new Error('AI extraction failed');
-    }
-
-    const data = await response.json();
-    const extractedText = data.choices?.[0]?.message?.content || '';
-    
-    return {
-      text: pdfText + '\n\n' + extractedText,
-      pageCount: Math.ceil((pdfText.length + extractedText.length) / 3000)
-    };
-  } catch (error) {
-    console.error('AI extraction error:', error);
-    // Return whatever we got from binary parsing
-    return {
-      text: pdfText || `[Document: ${fileName}] - Text extraction limited. Document appears to be a PDF.`,
-      pageCount: 1
-    };
-  }
-}
-
-// Extract text from PDF binary - basic text stream extraction
-function extractTextFromPdfBytes(bytes: Uint8Array): string {
+// Extract text from PDF binary - lightweight text stream extraction
+// Only processes first portion for validation to avoid memory limits
+function extractTextFromPdfBytes(bytes: Uint8Array, maxBytes: number = 2 * 1024 * 1024): string {
+  // Only process first portion to avoid memory limits
+  const processBytes = bytes.slice(0, Math.min(bytes.length, maxBytes));
   const decoder = new TextDecoder('latin1');
-  const content = decoder.decode(bytes);
+  const content = decoder.decode(processBytes);
   
   const extractedParts: string[] = [];
-  let pageNum = 1;
   
   // Find text between BT (begin text) and ET (end text) operators
   const btEtPattern = /BT\s*([\s\S]*?)\s*ET/g;
@@ -114,28 +46,39 @@ function extractTextFromPdfBytes(bytes: Uint8Array): string {
     if (blockText.trim()) {
       extractedParts.push(blockText.trim());
     }
+    
+    // Stop if we have enough text for validation
+    if (extractedParts.join(' ').length > 50000) break;
   }
   
-  // Also try to find text in streams
-  const streamPattern = /stream\s*([\s\S]*?)\s*endstream/g;
-  while ((match = streamPattern.exec(content)) !== null) {
-    const streamContent = match[1];
-    // Look for readable ASCII text
-    const readableText = streamContent.replace(/[^\x20-\x7E\n\r\t]/g, ' ').trim();
-    if (readableText.length > 50 && !readableText.includes('xref') && !readableText.includes('obj')) {
-      // Check if it looks like actual text (has words)
-      const words = readableText.split(/\s+/).filter(w => w.length > 2 && /^[a-zA-Z]+$/.test(w));
-      if (words.length > 5) {
-        extractedParts.push(readableText);
+  // If BT/ET extraction didn't work, try stream content
+  if (extractedParts.join(' ').length < 1000) {
+    const streamPattern = /stream\s*([\s\S]*?)\s*endstream/g;
+    while ((match = streamPattern.exec(content)) !== null && extractedParts.join(' ').length < 50000) {
+      const streamContent = match[1];
+      // Look for readable ASCII text
+      const readableText = streamContent.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (readableText.length > 50) {
+        // Check if it looks like actual text (has words)
+        const words = readableText.split(/\s+/).filter(w => w.length > 2 && /^[a-zA-Z]+$/.test(w));
+        if (words.length > 3) {
+          extractedParts.push(readableText.substring(0, 2000));
+        }
       }
     }
   }
   
-  // Group into pages (rough estimate)
-  const allText = extractedParts.join('\n');
-  const chunks = allText.match(/.{1,3000}/g) || [];
+  // Also extract any plain text visible in the PDF structure
+  const plainTextPattern = /\/(?:Title|Subject|Author|Keywords|Producer|Creator)\s*\(([^)]+)\)/g;
+  while ((match = plainTextPattern.exec(content)) !== null) {
+    extractedParts.unshift(match[1]); // Add metadata at the beginning
+  }
   
-  return chunks.map((chunk, i) => `[Page ${i + 1}]\n${chunk}`).join('\n\n');
+  const allText = extractedParts.join('\n');
+  
+  // Group into rough pages
+  const chunks = allText.match(/.{1,3000}/gs) || [];
+  return chunks.slice(0, 50).map((chunk, i) => `[Page ${i + 1}]\n${chunk}`).join('\n\n');
 }
 
 // Decode escaped characters in PDF strings
@@ -148,6 +91,26 @@ function decodeEscapedText(text: string): string {
     .replace(/\\\)/g, ')')
     .replace(/\\\\/g, '\\')
     .replace(/\\(\d{3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)));
+}
+
+// Extract DOCX text from XML content
+function extractDocxText(bytes: Uint8Array): string {
+  const decoder = new TextDecoder('utf-8', { fatal: false });
+  const content = decoder.decode(bytes);
+  
+  // Extract text between XML tags
+  const textPattern = /<w:t[^>]*>([^<]*)<\/w:t>/g;
+  const parts: string[] = [];
+  let match;
+  
+  while ((match = textPattern.exec(content)) !== null) {
+    if (match[1].trim()) {
+      parts.push(match[1]);
+    }
+    if (parts.join(' ').length > 100000) break;
+  }
+  
+  return parts.join(' ') || content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').substring(0, 100000).trim();
 }
 
 serve(async (req) => {
@@ -163,29 +126,45 @@ serve(async (req) => {
       throw new Error('No file provided');
     }
 
-    const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
-    console.log('Extracting text from:', file.name, file.type, `${fileSizeMB}MB`);
+    const fileSizeMB = file.size / 1024 / 1024;
+    console.log('Extracting text from:', file.name, file.type, `${fileSizeMB.toFixed(2)}MB`);
 
+    // Check file size - for very large files, we only need first portion for validation
+    const isLargeFile = fileSizeMB > 5;
+    
     // For PDF files
     if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
       try {
-        const arrayBuffer = await file.arrayBuffer();
+        console.log('Processing PDF with binary extraction...');
+        
+        // For large files, only read first 3MB for validation
+        const maxReadSize = isLargeFile ? 3 * 1024 * 1024 : file.size;
+        const blob = file.slice(0, maxReadSize);
+        const arrayBuffer = await blob.arrayBuffer();
         const bytes = new Uint8Array(arrayBuffer);
         
-        // Try binary text extraction first
-        console.log('Attempting binary PDF text extraction...');
-        let extractedText = extractTextFromPdfBytes(bytes);
+        console.log(`Reading ${(bytes.length / 1024 / 1024).toFixed(2)}MB of PDF data`);
         
-        // If we got meaningful text, use it
-        if (extractedText.length > 1000) {
-          console.log(`Successfully extracted ${extractedText.length} chars from PDF`);
-          const pageCount = (extractedText.match(/\[Page \d+\]/g) || []).length || Math.ceil(extractedText.length / 3000);
-          
+        const extractedText = extractTextFromPdfBytes(bytes);
+        const textLength = extractedText.length;
+        
+        console.log(`Extracted ${textLength} chars from PDF`);
+        
+        // Estimate page count based on file size (rough estimate ~50KB per page for ESG reports)
+        const estimatedPageCount = Math.max(
+          (extractedText.match(/\[Page \d+\]/g) || []).length,
+          Math.ceil(fileSizeMB * 20) // Rough estimate
+        );
+        
+        if (textLength < 100) {
+          // Very little text extracted - PDF might be image-based
+          console.log('Minimal text extracted - PDF may be image-based or encrypted');
           return new Response(
             JSON.stringify({
-              text: extractedText,
-              pageCount,
-              method: 'binary'
+              text: `[Document: ${file.name}]\nThis PDF appears to be image-based or encrypted. Limited text could be extracted for validation.\nFile size: ${fileSizeMB.toFixed(2)}MB\nEstimated pages: ${estimatedPageCount}`,
+              pageCount: estimatedPageCount,
+              method: 'binary-limited',
+              warning: 'Image-based or encrypted PDF'
             }),
             {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -193,16 +172,12 @@ serve(async (req) => {
           );
         }
         
-        // Fallback to AI-based extraction for scanned PDFs
-        console.log('Binary extraction yielded limited text, trying AI extraction...');
-        const base64 = btoa(String.fromCharCode(...bytes));
-        const result = await extractPdfWithAI(base64, file.name);
-        
         return new Response(
           JSON.stringify({
-            text: result.text,
-            pageCount: result.pageCount,
-            method: 'ai-assisted'
+            text: extractedText,
+            pageCount: estimatedPageCount,
+            method: 'binary',
+            partial: isLargeFile
           }),
           {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -218,8 +193,11 @@ serve(async (req) => {
     // For text files
     if (file.type === 'text/plain' || file.type === 'text/csv' || 
         file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
-      const text = await file.text();
-      const pageCount = Math.ceil(text.length / 3000);
+      // For large text files, only read first portion
+      const maxTextSize = 500 * 1024; // 500KB should be plenty for validation
+      const blob = file.slice(0, Math.min(file.size, maxTextSize));
+      const text = await blob.text();
+      const pageCount = Math.ceil(file.size / 3000);
       
       console.log(`Extracted ${text.length} characters from text file`);
       
@@ -227,7 +205,8 @@ serve(async (req) => {
         JSON.stringify({
           text,
           pageCount,
-          method: 'text'
+          method: 'text',
+          partial: file.size > maxTextSize
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -237,26 +216,13 @@ serve(async (req) => {
 
     // For DOCX files
     if (file.name.endsWith('.docx')) {
-      const arrayBuffer = await file.arrayBuffer();
+      const maxDocxSize = 2 * 1024 * 1024; // 2MB for DOCX
+      const blob = file.slice(0, Math.min(file.size, maxDocxSize));
+      const arrayBuffer = await blob.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       
-      // DOCX is a ZIP file, try to extract document.xml content
-      const decoder = new TextDecoder('utf-8', { fatal: false });
-      const content = decoder.decode(bytes);
-      
-      // Extract text between XML tags
-      const textPattern = /<w:t[^>]*>([^<]*)<\/w:t>/g;
-      const parts: string[] = [];
-      let match;
-      
-      while ((match = textPattern.exec(content)) !== null) {
-        if (match[1].trim()) {
-          parts.push(match[1]);
-        }
-      }
-      
-      const text = parts.join(' ') || content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-      const pageCount = Math.ceil(text.length / 3000);
+      const text = extractDocxText(bytes);
+      const pageCount = Math.ceil(file.size / 5000);
       
       console.log(`Extracted ${text.length} characters from DOCX`);
       
@@ -264,7 +230,8 @@ serve(async (req) => {
         JSON.stringify({
           text,
           pageCount,
-          method: 'docx'
+          method: 'docx',
+          partial: file.size > maxDocxSize
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
