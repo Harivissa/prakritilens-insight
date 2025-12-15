@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { ValidationResult, UploadedFile } from '@/types/validation';
 
+// Supabase project URL
+const SUPABASE_URL = 'https://rtztgxtqlyrixmskozfi.supabase.co';
+
 // Accepted file types
 const ACCEPTED_TYPES = {
   'application/pdf': ['.pdf'],
@@ -12,6 +15,20 @@ const ACCEPTED_TYPES = {
 };
 
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+
+export interface StorageUploadResult {
+  filePath: string;
+  signedUrl: string;
+  metadata: {
+    originalName: string;
+    sanitizedName: string;
+    size: number;
+    type: string;
+    uploadedAt: string;
+    companyName?: string;
+    reportYear?: number;
+  };
+}
 
 export function useDocumentUpload() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -27,12 +44,30 @@ export function useDocumentUpload() {
            validExtensions.some(ext => fileName.endsWith(ext));
   };
 
-  // Sanitize filename
+  // Sanitize filename - remove unsafe characters
   const sanitizeFilename = (name: string): string => {
     return name
       .replace(/[^a-zA-Z0-9.-]/g, '_')
       .replace(/_+/g, '_')
+      .replace(/^_+|_+$/g, '')
       .substring(0, 100);
+  };
+
+  // Generate storage path with proper folder structure
+  const generateStoragePath = (
+    userId: string, 
+    file: File, 
+    validation?: ValidationResult
+  ): string => {
+    const sanitizedName = sanitizeFilename(file.name);
+    const timestamp = Date.now();
+    const year = validation?.detected_year || new Date().getFullYear();
+    const companySlug = validation?.company_name 
+      ? sanitizeFilename(validation.company_name.substring(0, 30))
+      : 'unknown';
+    
+    // Folder structure: user_id/year/company/timestamp_filename
+    return `${userId}/${year}/${companySlug}/${timestamp}_${sanitizedName}`;
   };
 
   // Update file status
@@ -62,7 +97,70 @@ export function useDocumentUpload() {
     setFiles(prev => prev.filter(f => f.id !== id));
   }, []);
 
-  // Extract text from document
+  // Upload file to Supabase Storage with proper folder structure
+  const uploadToStorage = async (
+    file: File, 
+    validation?: ValidationResult
+  ): Promise<StorageUploadResult> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    const filePath = generateStoragePath(user.id, file, validation);
+    const sanitizedName = sanitizeFilename(file.name);
+
+    console.log(`Uploading to storage: ${filePath}`);
+
+    // Upload with content type
+    const { error: uploadError } = await supabase.storage
+      .from('reports')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: file.type || 'application/octet-stream',
+      });
+
+    if (uploadError) {
+      console.error('Storage upload error:', uploadError);
+      throw new Error(`Upload failed: ${uploadError.message}`);
+    }
+
+    // Create signed URL (7 days validity)
+    const { data: signed, error: signError } = await supabase.storage
+      .from('reports')
+      .createSignedUrl(filePath, 60 * 60 * 24 * 7);
+
+    if (signError || !signed?.signedUrl) {
+      throw new Error('Failed to create secure file access URL');
+    }
+
+    return {
+      filePath,
+      signedUrl: signed.signedUrl,
+      metadata: {
+        originalName: file.name,
+        sanitizedName,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date().toISOString(),
+        companyName: validation?.company_name,
+        reportYear: validation?.detected_year || undefined,
+      },
+    };
+  };
+
+  // Delete file from storage
+  const deleteFromStorage = async (filePath: string): Promise<void> => {
+    const { error } = await supabase.storage
+      .from('reports')
+      .remove([filePath]);
+    
+    if (error) {
+      console.error('Error deleting file from storage:', error);
+      throw new Error(`Failed to delete file: ${error.message}`);
+    }
+  };
+
+  // Extract text from document via edge function
   const extractText = async (file: File): Promise<{ text: string; pageCount: number }> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Authentication required');
@@ -71,7 +169,7 @@ export function useDocumentUpload() {
     formData.append('file', file);
 
     const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-pdf-text`,
+      `${SUPABASE_URL}/functions/v1/extract-pdf-text`,
       {
         method: 'POST',
         headers: {
@@ -98,13 +196,17 @@ export function useDocumentUpload() {
     };
   };
 
-  // Validate document content
-  const validateDocument = async (text: string, fileName: string, pageCount: number): Promise<ValidationResult> => {
+  // Validate document content via edge function
+  const validateDocument = async (
+    text: string, 
+    fileName: string, 
+    pageCount: number
+  ): Promise<ValidationResult> => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Authentication required');
 
     const response = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/validate-document`,
+      `${SUPABASE_URL}/functions/v1/validate-document`,
       {
         method: 'POST',
         headers: {
@@ -129,7 +231,7 @@ export function useDocumentUpload() {
     return result;
   };
 
-  // Process single file through the pipeline
+  // Process single file through the complete pipeline
   const processFile = useCallback(async (id: string): Promise<ValidationResult | null> => {
     const fileEntry = files.find(f => f.id === id);
     if (!fileEntry) return null;
@@ -155,13 +257,13 @@ export function useDocumentUpload() {
         return null;
       }
 
-      // Step 1: Upload progress simulation (actual upload happens with extraction)
+      // Step 1: Initial upload indicator
       updateFile(id, { status: 'uploading', progress: 10 });
-      await new Promise(r => setTimeout(r, 200));
-      updateFile(id, { progress: 30 });
+      await new Promise(r => setTimeout(r, 300));
+      updateFile(id, { progress: 25 });
 
       // Step 2: Extract text
-      updateFile(id, { status: 'extracting', progress: 40 });
+      updateFile(id, { status: 'extracting', progress: 35 });
       
       let extractedText: string;
       let pageCount: number;
@@ -172,10 +274,10 @@ export function useDocumentUpload() {
         pageCount = extraction.pageCount;
         
         if (!extractedText || extractedText.length < 100) {
-          throw new Error('Could not extract sufficient text from document');
+          throw new Error('Could not extract sufficient text from document. File may be corrupted or password-protected.');
         }
         
-        updateFile(id, { progress: 60 });
+        updateFile(id, { progress: 55 });
       } catch (extractError) {
         console.error('Extraction error:', extractError);
         updateFile(id, {
@@ -186,11 +288,11 @@ export function useDocumentUpload() {
       }
 
       // Step 3: Validate content
-      updateFile(id, { status: 'validating', progress: 70 });
+      updateFile(id, { status: 'validating', progress: 65 });
       
       try {
         const validation = await validateDocument(extractedText, fileEntry.name, pageCount);
-        updateFile(id, { progress: 90 });
+        updateFile(id, { progress: 85 });
         
         // Determine final status based on validation
         if (validation.final_validation_status === 'Rejected: Not an ESG report') {
@@ -230,7 +332,7 @@ export function useDocumentUpload() {
     }
   }, [files, updateFile]);
 
-  // Upload and process file
+  // Upload and process file - main entry point
   const uploadAndValidate = useCallback(async (file: File): Promise<{ id: string; validation: ValidationResult | null }> => {
     // Validate file type first
     if (!validateFileType(file)) {
@@ -270,8 +372,11 @@ export function useDocumentUpload() {
     removeFile,
     processFile,
     uploadAndValidate,
+    uploadToStorage,
+    deleteFromStorage,
     updateFile,
     clearFiles,
     acceptedTypes: ACCEPTED_TYPES,
+    sanitizeFilename,
   };
 }

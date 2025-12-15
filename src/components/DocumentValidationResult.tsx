@@ -14,8 +14,9 @@ import {
 export interface ValidationResult {
   company_name: string;
   detected_year: number | null;
+  page_count?: number;
   document_type: 'Annual Report' | 'ESG Report' | 'CSR Report' | 'Sustainability Report' | 'Unknown';
-  contains_esg_sections: boolean;
+  contains_esg_sections?: boolean;
   esg_keywords_detected: number;
   keyword_breakdown: {
     environmental: number;
@@ -30,6 +31,12 @@ export interface ValidationResult {
   confidence_level: 'High' | 'Medium' | 'Low';
   rejection_reason?: string;
   extracted_preview: string;
+  validation_details?: {
+    keyword_score: number;
+    structure_score: number;
+    semantic_score: number;
+    total_score: number;
+  };
 }
 
 interface DocumentValidationResultProps {
