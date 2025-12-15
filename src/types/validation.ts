@@ -3,8 +3,9 @@
 export interface ValidationResult {
   company_name: string;
   detected_year: number | null;
-  page_count: number;
+  page_count?: number;
   document_type: 'Annual Report' | 'ESG Report' | 'CSR Report' | 'Sustainability Report' | 'Unknown';
+  contains_esg_sections?: boolean;
   esg_keywords_detected: number;
   keyword_breakdown: {
     environmental: number;

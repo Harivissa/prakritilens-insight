@@ -21,8 +21,13 @@ export type SaveReportInput = {
   company_name: string;
   file_name: string;
   file_url: string;
-  hash: string;
+  file_path?: string; // Storage path for deletion
+  hash?: string;
   analysis_data: any;
+  report_year?: number;
+  page_count?: number;
+  validation_status?: string;
+  confidence_level?: string;
 };
 
 export const useReports = () => {
@@ -65,8 +70,12 @@ export const useReports = () => {
             company_name: reportData.company_name,
             file_name: reportData.file_name,
             file_url: reportData.file_url,
-            hash: reportData.hash,
+            hash: reportData.hash || crypto.randomUUID(),
             analysis_data: reportData.analysis_data,
+            report_year: reportData.report_year,
+            page_count: reportData.page_count,
+            validation_status: reportData.validation_status || 'validated',
+            confidence_level: reportData.confidence_level,
           }
         ])
         .select()

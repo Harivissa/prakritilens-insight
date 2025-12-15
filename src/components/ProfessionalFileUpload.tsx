@@ -14,7 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReports } from '@/hooks/useReports';
 import { useESGScoring } from '@/hooks/useESGScoring';
-import { useDocumentValidation } from '@/hooks/useDocumentValidation';
+import { useDocumentUpload } from '@/hooks/useDocumentUpload';
 import { DocumentValidationResult, type ValidationResult } from '@/components/DocumentValidationResult';
 import { toast } from '@/hooks/use-toast';
 
@@ -42,9 +42,9 @@ export const ProfessionalFileUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
   const [pendingValidation, setPendingValidation] = useState<UploadedFile | null>(null);
-  const { saveReport, uploadFile } = useReports();
+  const { saveReport } = useReports();
   const { analyzeDocument, isAnalyzing } = useESGScoring();
-  const { validateDocument, isValidating } = useDocumentValidation();
+  const { uploadAndValidate, uploadToStorage, isProcessing: isValidating } = useDocumentUpload();
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     // Process files one by one for validation
@@ -58,20 +58,28 @@ export const ProfessionalFileUpload = () => {
 
       setUploadedFiles(prev => [...prev, fileData]);
       
-      // Run validation
-      const result = await validateDocument(file);
+      // Run validation using new hook
+      const { validation } = await uploadAndValidate(file);
       
-      if (result) {
+      if (validation) {
         setUploadedFiles(prev => 
           prev.map(f => f.id === fileData.id ? { 
             ...f, 
-            status: 'validated',
-            validationResult: result 
+            status: validation.final_validation_status === 'Rejected: Not an ESG report' ? 'rejected' : 'validated',
+            validationResult: validation 
           } : f)
         );
         
-        // Show validation modal for user decision
-        setPendingValidation({ ...fileData, validationResult: result });
+        // Show validation modal for user decision (only for accepted/maybe documents)
+        if (validation.final_validation_status !== 'Rejected: Not an ESG report') {
+          setPendingValidation({ ...fileData, validationResult: validation });
+        } else {
+          toast({
+            title: 'Document Rejected',
+            description: 'This file does not appear to be an ESG/Sustainability report.',
+            variant: 'destructive',
+          });
+        }
       } else {
         setUploadedFiles(prev => 
           prev.map(f => f.id === fileData.id ? { 
@@ -82,7 +90,7 @@ export const ProfessionalFileUpload = () => {
         );
       }
     }
-  }, [validateDocument]);
+  }, [uploadAndValidate]);
 
   // Handler for when user approves validation and wants to proceed
   const handleProceedWithAnalysis = useCallback(async (fileData: UploadedFile) => {
@@ -133,7 +141,8 @@ export const ProfessionalFileUpload = () => {
         );
       }
 
-      const storedUrl = await uploadFile(fileData.file);
+      // Upload to storage with proper folder structure and metadata
+      const storageResult = await uploadToStorage(fileData.file, fileData.validationResult);
 
       setUploadedFiles(prev => 
         prev.map(f => f.id === fileData.id ? { 
@@ -153,9 +162,13 @@ export const ProfessionalFileUpload = () => {
         score: analysis.score,
         company_name: companyName,
         file_name: fileData.file.name,
-        file_url: storedUrl,
-        hash: `hash_${Date.now()}`,
-        analysis_data: analysis
+        file_url: storageResult.signedUrl,
+        file_path: storageResult.filePath,
+        analysis_data: analysis,
+        report_year: fileData.validationResult?.detected_year || undefined,
+        page_count: fileData.validationResult?.page_count,
+        validation_status: fileData.validationResult?.final_validation_status,
+        confidence_level: fileData.validationResult?.confidence_level,
       });
 
       const displayName = companyName;
@@ -190,7 +203,7 @@ export const ProfessionalFileUpload = () => {
         variant: "destructive",
       });
     }
-  }, [analyzeDocument, uploadFile, saveReport]);
+  }, [analyzeDocument, uploadToStorage, saveReport]);
 
   // Handler for when user rejects/cancels validation
   const handleRejectValidation = useCallback((fileId: string) => {
