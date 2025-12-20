@@ -5,9 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Leaf, Mail, Lock, ArrowLeft, Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
+import { Leaf, Mail, Lock, ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { EmailVerificationPending } from './EmailVerificationPending';
+import { toast } from '@/hooks/use-toast';
+import { SignUpSuccessModal } from './SignUpSuccessModal';
 
 interface AuthPageProps {
   onLogin?: () => void;
@@ -15,7 +16,7 @@ interface AuthPageProps {
 }
 
 export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
-  const { signIn, signUp, resetPassword, resendVerification } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,9 +25,8 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
-  const [showVerificationPending, setShowVerificationPending] = useState(false);
-  const [pendingEmail, setPendingEmail] = useState('');
-  const [needsVerificationEmail, setNeedsVerificationEmail] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [signUpEmail, setSignUpEmail] = useState('');
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -64,37 +64,24 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
     setIsLoading(true);
     
     try {
-      if (isSignUp) {
-        const { error, success } = await signUp(email, password);
-        if (error) {
-          setErrors({ general: error.message });
-        } else if (success) {
-          setPendingEmail(email);
-          setShowVerificationPending(true);
-          setEmail('');
-          setPassword('');
-        }
-      } else {
-        const { error, needsVerification } = await signIn(email, password);
-        if (error) {
-          if (needsVerification) {
-            setNeedsVerificationEmail(email);
-          }
-          setErrors({ general: error.message });
-        } else if (onLogin) {
-          onLogin();
-        }
+      const { error } = isSignUp 
+        ? await signUp(email, password)
+        : await signIn(email, password);
+      
+      if (error) {
+        setErrors({ general: error.message });
+      } else if (isSignUp) {
+        // Show success modal for sign up
+        setSignUpEmail(email);
+        setShowSuccessModal(true);
+        setEmail('');
+        setPassword('');
+      } else if (onLogin) {
+        onLogin();
       }
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleResendFromLogin = async () => {
-    if (!needsVerificationEmail) return;
-    setIsLoading(true);
-    await resendVerification(needsVerificationEmail);
-    setIsLoading(false);
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -123,19 +110,6 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
       setIsLoading(false);
     }
   };
-
-  // Show verification pending screen after signup
-  if (showVerificationPending) {
-    return (
-      <EmailVerificationPending 
-        email={pendingEmail} 
-        onBack={() => {
-          setShowVerificationPending(false);
-          setIsSignUp(false);
-        }} 
-      />
-    );
-  }
 
   if (showForgotPassword) {
     return (
@@ -216,7 +190,14 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center gradient-hero p-6">
+    <>
+      <SignUpSuccessModal 
+        isOpen={showSuccessModal} 
+        onClose={() => setShowSuccessModal(false)}
+        email={signUpEmail}
+      />
+      
+      <div className="min-h-screen flex items-center justify-center gradient-hero p-6">
       <div className="absolute inset-0 opacity-10">
         {[...Array(15)].map((_, i) => (
           <div
@@ -260,22 +241,7 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
             {errors.general && (
               <Alert variant="destructive" className="mb-4">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="flex flex-col gap-2">
-                  <span>{errors.general}</span>
-                  {needsVerificationEmail && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleResendFromLogin}
-                      disabled={isLoading}
-                      className="w-fit"
-                    >
-                      <RefreshCw className={`h-3 w-3 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
-                      Resend Verification Email
-                    </Button>
-                  )}
-                </AlertDescription>
+                <AlertDescription>{errors.general}</AlertDescription>
               </Alert>
             )}
             
@@ -440,5 +406,6 @@ export const AuthPageProfessional = ({ onLogin, onBack }: AuthPageProps) => {
         </Card>
       </div>
     </div>
+    </>
   );
 };

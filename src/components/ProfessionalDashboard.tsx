@@ -26,7 +26,7 @@ import { ESGWeightsCustomizer } from './ESGWeightsCustomizer';
 import { UserRoleManager } from './UserRoleManager';
 import { DarkModeToggle } from './DarkModeToggle';
 import { TrendAnalytics } from './TrendAnalytics';
-import { UnverifiedEmailBanner } from './UnverifiedEmailBanner';
+import { VerificationBanner } from './VerificationBanner';
 import { Footer } from './Footer';
 import { VoiceAssistant } from './VoiceAssistant';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -34,7 +34,7 @@ import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
 
 export const ProfessionalDashboard = () => {
-  const { user, signOut, isEmailVerified } = useAuth();
+  const { user, signOut } = useAuth();
   const { profile } = useProfile();
   const { reports, loading, deleteReport } = useReports();
   const [activeTab, setActiveTab] = useState('overview');
@@ -42,6 +42,18 @@ export const ProfessionalDashboard = () => {
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [esgWeights, setESGWeights] = useState({ environmental: 40, social: 35, governance: 25 });
+  const [isEmailVerified, setIsEmailVerified] = useState(true);
+
+  // Check email verification status
+  useEffect(() => {
+    const checkVerification = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setIsEmailVerified(user.email_confirmed_at !== null);
+      }
+    };
+    checkVerification();
+  }, []);
 
   // Calculate key metrics
   const totalReports = reports.length;
@@ -184,7 +196,7 @@ export const ProfessionalDashboard = () => {
 
       <div className="container mx-auto px-4 py-6">
         {/* Verification Banner */}
-        {!isEmailVerified && user?.email && <UnverifiedEmailBanner email={user.email} />}
+        {!isEmailVerified && <VerificationBanner />}
         
         {/* Hero Intro Section */}
         <motion.div
