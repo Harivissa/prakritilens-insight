@@ -2,79 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
-/* PrakritiLens Design System - Vibrant Neon Aesthetic
-All colors MUST be HSL. Inspired by modern SaaS landing pages.
+/* PrakritiLens Design System - Professional ESG Platform
+All colors MUST be HSL. Nature-inspired with professional accents.
 */
 
 @layer base {
   :root {
     /* Base Colors - Clean & Professional */
     --background: 0 0% 100%;
-    --foreground: 260 20% 10%;
+    --foreground: 160 15% 8%;
     
-    /* Landing Page - Deep Purple/Blue Gradient Base */
-    --landing-background: 260 70% 8%;
+    /* Landing Page Pure Black */
+    --landing-background: 0 0% 0%;
 
     /* Card & Surface Colors */
     --card: 0 0% 100%;
-    --card-foreground: 260 20% 10%;
+    --card-foreground: 160 15% 8%;
 
     /* Popover Colors */
     --popover: 0 0% 100%;
-    --popover-foreground: 260 20% 10%;
+    --popover-foreground: 160 15% 8%;
 
-    /* Primary - Vibrant Cyan/Teal */
-    --primary: 174 100% 50%;
-    --primary-foreground: 260 70% 8%;
-    --primary-hover: 174 100% 45%;
+    /* Primary - Nature Green */
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 142 76% 32%;
 
-    /* Secondary - Purple/Magenta */
-    --secondary: 280 80% 60%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Professional Sage */
+    --secondary: 150 30% 92%;
+    --secondary-foreground: 160 15% 8%;
 
     /* Muted Colors */
-    --muted: 260 30% 92%;
-    --muted-foreground: 260 15% 45%;
+    --muted: 150 20% 95%;
+    --muted-foreground: 160 10% 40%;
 
-    /* Accent - Hot Pink/Magenta */
-    --accent: 320 100% 60%;
+    /* Accent - Emerald */
+    --accent: 158 64% 52%;
     --accent-foreground: 0 0% 100%;
 
     /* Status Colors */
-    --success: 150 80% 50%;
+    --success: 138 76% 46%;
     --success-foreground: 0 0% 100%;
-    --warning: 45 100% 55%;
-    --warning-foreground: 0 0% 10%;
-    --destructive: 0 85% 60%;
+    --warning: 43 96% 56%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     /* Border & Input */
-    --border: 260 20% 88%;
-    --input: 260 20% 88%;
-    --ring: 174 100% 50%;
+    --border: 150 20% 88%;
+    --input: 150 20% 88%;
+    --ring: 142 76% 36%;
 
-    /* Neon Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(174 100% 50%), hsl(280 80% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(260 70% 20%) 0%, hsl(280 60% 30%) 35%, hsl(320 70% 40%) 70%, hsl(260 50% 35%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(260 30% 98%) 100%);
-    --gradient-shimmer: linear-gradient(110deg, transparent 25%, hsl(174 100% 50% / 0.3) 50%, transparent 75%);
-    --gradient-neon: linear-gradient(135deg, hsl(174 100% 50%) 0%, hsl(280 80% 60%) 50%, hsl(320 100% 60%) 100%);
-    --gradient-mesh: radial-gradient(at 40% 20%, hsl(280 80% 50% / 0.3) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(320 100% 60% / 0.3) 0px, transparent 50%),
-                     radial-gradient(at 0% 50%, hsl(174 100% 50% / 0.3) 0px, transparent 50%);
+    /* Gradients - Masterclass */
+    --gradient-primary: linear-gradient(135deg, hsl(142 76% 36%), hsl(158 64% 52%));
+    --gradient-hero: linear-gradient(135deg, hsl(142 76% 36%) 0%, hsl(158 64% 52%) 50%, hsl(120 60% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(150 30% 98%) 100%);
+    --gradient-shimmer: linear-gradient(110deg, transparent 25%, hsl(142 76% 36% / 0.2) 50%, transparent 75%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(142 76% 36% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(158 64% 52% / 0.15) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(120 60% 45% / 0.15) 0px, transparent 50%);
 
-    /* Premium Shadows */
-    --shadow-elegant: 0 10px 40px -10px hsl(280 80% 50% / 0.3), 0 4px 16px -4px hsl(260 20% 10% / 0.1);
-    --shadow-card: 0 4px 12px -1px hsl(260 20% 10% / 0.1), 0 6px 16px -4px hsl(260 20% 10% / 0.06);
-    --shadow-floating: 0 24px 72px -20px hsl(280 80% 50% / 0.4), 0 12px 32px -12px hsl(260 20% 10% / 0.2);
-    --shadow-subtle: 0 2px 6px hsl(260 20% 10% / 0.08);
-    --shadow-glow: 0 0 50px hsl(174 100% 50% / 0.4);
-    --shadow-neon-cyan: 0 0 40px hsl(174 100% 50% / 0.6);
-    --shadow-neon-pink: 0 0 40px hsl(320 100% 60% / 0.6);
-    --shadow-neon-purple: 0 0 40px hsl(280 80% 60% / 0.6);
-    --shadow-intense: 0 32px 96px -24px hsl(280 80% 50% / 0.5), 0 16px 48px -16px hsl(260 20% 10% / 0.2);
+    /* Shadows - Masterclass Premium */
+    --shadow-elegant: 0 10px 40px -10px hsl(142 76% 36% / 0.2), 0 4px 16px -4px hsl(160 15% 8% / 0.08);
+    --shadow-card: 0 4px 12px -1px hsl(160 15% 8% / 0.1), 0 6px 16px -4px hsl(160 15% 8% / 0.06);
+    --shadow-floating: 0 24px 72px -20px hsl(142 76% 36% / 0.3), 0 12px 32px -12px hsl(160 15% 8% / 0.15);
+    --shadow-subtle: 0 2px 6px hsl(160 15% 8% / 0.08);
+    --shadow-glow: 0 0 40px hsl(142 76% 36% / 0.25);
+    --shadow-intense: 0 32px 96px -24px hsl(142 76% 36% / 0.4), 0 16px 48px -16px hsl(160 15% 8% / 0.2);
 
-    /* Premium Animations */
+    /* Animations - Premium Timing */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     --transition-bounce: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -83,79 +79,82 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
+
     --sidebar-foreground: 240 5.3% 26.1%;
+
     --sidebar-primary: 240 5.9% 10%;
+
     --sidebar-primary-foreground: 0 0% 98%;
+
     --sidebar-accent: 240 4.8% 95.9%;
+
     --sidebar-accent-foreground: 240 5.9% 10%;
+
     --sidebar-border: 220 13% 91%;
+
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    /* Dark Mode - Deep Purple Neon Theme */
-    --background: 260 50% 6%;
-    --foreground: 0 0% 98%;
+    /* Dark Mode - True Dark Theme for Eye Comfort */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
 
-    --card: 260 40% 10%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 260 40% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 174 100% 50%;
-    --primary-foreground: 260 70% 8%;
-    --primary-hover: 174 100% 55%;
+    --primary: 158 64% 52%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 158 64% 48%;
 
-    --secondary: 280 60% 55%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 260 30% 15%;
-    --muted-foreground: 260 10% 65%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 320 100% 60%;
+    --accent: 142 76% 46%;
     --accent-foreground: 0 0% 100%;
 
-    --success: 150 80% 55%;
+    --success: 138 76% 56%;
     --success-foreground: 0 0% 100%;
-    --warning: 45 100% 60%;
-    --warning-foreground: 0 0% 10%;
-    --destructive: 0 85% 65%;
+    --warning: 43 96% 66%;
+    --warning-foreground: 0 0% 8%;
+    --destructive: 0 84% 70%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 260 30% 20%;
-    --input: 260 30% 20%;
-    --ring: 174 100% 50%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 158 64% 52%;
 
-    /* Dark Neon Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(174 100% 50%), hsl(280 80% 60%));
-    --gradient-hero: linear-gradient(135deg, hsl(260 70% 12%) 0%, hsl(280 60% 25%) 35%, hsl(320 60% 35%) 70%, hsl(260 50% 20%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(260 40% 10%) 0%, hsl(260 40% 14%) 100%);
-    --gradient-shimmer: linear-gradient(110deg, transparent 25%, hsl(174 100% 50% / 0.25) 50%, transparent 75%);
-    --gradient-neon: linear-gradient(135deg, hsl(174 100% 50%) 0%, hsl(280 80% 60%) 50%, hsl(320 100% 60%) 100%);
-    --gradient-mesh: radial-gradient(at 40% 20%, hsl(280 80% 50% / 0.2) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(320 100% 60% / 0.2) 0px, transparent 50%),
-                     radial-gradient(at 0% 50%, hsl(174 100% 50% / 0.2) 0px, transparent 50%);
+    /* Dark Mode Gradients - Masterclass */
+    --gradient-primary: linear-gradient(135deg, hsl(158 64% 52%), hsl(142 76% 46%));
+    --gradient-hero: linear-gradient(135deg, hsl(158 64% 52%) 0%, hsl(142 76% 46%) 50%, hsl(120 60% 55%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 6%) 0%, hsl(0 0% 8%) 100%);
+    --gradient-shimmer: linear-gradient(110deg, transparent 25%, hsl(158 64% 52% / 0.2) 50%, transparent 75%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(158 64% 52% / 0.1) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(142 76% 46% / 0.1) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(120 60% 55% / 0.1) 0px, transparent 50%);
 
-    /* Dark Neon Shadows */
+    /* Dark Shadows - Masterclass Premium */
     --shadow-elegant: 0 10px 40px -10px hsl(0 0% 0% / 0.8), 0 4px 16px -4px hsl(0 0% 0% / 0.5);
-    --shadow-card: 0 4px 12px -1px hsl(0 0% 0% / 0.6), 0 6px 16px -4px hsl(0 0% 0% / 0.4);
-    --shadow-floating: 0 24px 72px -20px hsl(280 80% 50% / 0.5), 0 12px 32px -12px hsl(0 0% 0% / 0.6);
+    --shadow-card: 0 4px 12px -1px hsl(0 0% 0% / 0.7), 0 6px 16px -4px hsl(0 0% 0% / 0.5);
+    --shadow-floating: 0 24px 72px -20px hsl(158 64% 52% / 0.5), 0 12px 32px -12px hsl(0 0% 0% / 0.6);
     --shadow-subtle: 0 2px 6px hsl(0 0% 0% / 0.5);
-    --shadow-glow: 0 0 60px hsl(174 100% 50% / 0.5);
-    --shadow-neon-cyan: 0 0 50px hsl(174 100% 50% / 0.7);
-    --shadow-neon-pink: 0 0 50px hsl(320 100% 60% / 0.7);
-    --shadow-neon-purple: 0 0 50px hsl(280 80% 60% / 0.7);
-    --shadow-intense: 0 32px 96px -24px hsl(280 80% 50% / 0.6), 0 16px 48px -16px hsl(0 0% 0% / 0.7);
+    --shadow-glow: 0 0 50px hsl(158 64% 52% / 0.35);
+    --shadow-intense: 0 32px 96px -24px hsl(158 64% 52% / 0.6), 0 16px 48px -16px hsl(0 0% 0% / 0.7);
 
-    --sidebar-background: 260 40% 8%;
+    --sidebar-background: 0 0% 6%;
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 174 100% 50%;
+    --sidebar-primary: 158 64% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 260 30% 15%;
+    --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 260 30% 18%;
-    --sidebar-ring: 174 100% 50%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 158 64% 52%;
   }
 }
 
@@ -169,7 +168,7 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
     font-family: 'Inter', sans-serif;
   }
 
-  /* Utility Classes */
+  /* Custom utility classes - Masterclass Edition */
   .gradient-primary {
     background: var(--gradient-primary);
   }
@@ -184,10 +183,6 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
 
   .gradient-mesh {
     background: var(--gradient-mesh);
-  }
-
-  .gradient-neon {
-    background: var(--gradient-neon);
   }
 
   .gradient-shimmer {
@@ -216,18 +211,6 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
     box-shadow: var(--shadow-glow);
   }
 
-  .shadow-neon-cyan {
-    box-shadow: var(--shadow-neon-cyan);
-  }
-
-  .shadow-neon-pink {
-    box-shadow: var(--shadow-neon-pink);
-  }
-
-  .shadow-neon-purple {
-    box-shadow: var(--shadow-neon-purple);
-  }
-
   .shadow-intense {
     box-shadow: var(--shadow-intense);
   }
@@ -248,44 +231,37 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
     transition: var(--transition-elegant);
   }
 
-  /* Glass Effects */
+  /* Glass effect - Premium */
   .glass-card {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.4);
   }
 
   .dark .glass-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .frosted-glass {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(32px) saturate(200%);
-    -webkit-backdrop-filter: blur(32px) saturate(200%);
     border: 1px solid rgba(255, 255, 255, 0.15);
   }
 
-  .dark .frosted-glass {
-    background: rgba(255, 255, 255, 0.06);
+  /* Frosted glass - Ultra premium */
+  .frosted-glass {
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(32px) saturate(200%);
     -webkit-backdrop-filter: blur(32px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 
-  /* Neon Glass Effect */
-  .neon-glass {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .dark .frosted-glass {
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  /* Hover Effects */
+  /* Hover lift effect - Enhanced */
   .hover-lift {
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -294,6 +270,7 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
     transform: translateY(-6px) scale(1.01);
   }
 
+  /* Hover float - Subtle */
   .hover-float {
     transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
@@ -302,24 +279,12 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
     transform: translateY(-3px);
   }
 
+  /* Smooth scale */
   .scale-102 {
     transform: scale(1.02);
   }
 
-  /* Neon Text Glow */
-  .text-glow-cyan {
-    text-shadow: 0 0 20px hsl(174 100% 50% / 0.8), 0 0 40px hsl(174 100% 50% / 0.4);
-  }
-
-  .text-glow-pink {
-    text-shadow: 0 0 20px hsl(320 100% 60% / 0.8), 0 0 40px hsl(320 100% 60% / 0.4);
-  }
-
-  .text-glow-purple {
-    text-shadow: 0 0 20px hsl(280 80% 60% / 0.8), 0 0 40px hsl(280 80% 60% / 0.4);
-  }
-
-  /* Animation Keyframes */
+  /* Animation keyframes */
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }
@@ -365,44 +330,6 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
     }
   }
 
-  @keyframes neon-pulse {
-    0%, 100% {
-      opacity: 1;
-      filter: brightness(1);
-    }
-    50% {
-      opacity: 0.8;
-      filter: brightness(1.2);
-    }
-  }
-
-  @keyframes gradient-shift {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-
-  @keyframes orb-float {
-    0%, 100% {
-      transform: translate(0, 0) scale(1);
-    }
-    25% {
-      transform: translate(10px, -20px) scale(1.05);
-    }
-    50% {
-      transform: translate(-5px, -10px) scale(0.95);
-    }
-    75% {
-      transform: translate(-15px, -25px) scale(1.02);
-    }
-  }
-
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
@@ -421,18 +348,5 @@ All colors MUST be HSL. Inspired by modern SaaS landing pages.
 
   .animate-slide-in {
     animation: slide-in 0.5s ease-out;
-  }
-
-  .animate-neon-pulse {
-    animation: neon-pulse 2s ease-in-out infinite;
-  }
-
-  .animate-gradient-shift {
-    background-size: 200% 200%;
-    animation: gradient-shift 8s ease infinite;
-  }
-
-  .animate-orb-float {
-    animation: orb-float 6s ease-in-out infinite;
   }
 }
