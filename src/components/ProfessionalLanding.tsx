@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowRight, Play, Upload, MessageSquare, TrendingUp, Shield, Zap, Users, CheckCircle2, Star, Globe, BarChart3, Send, Mail } from 'lucide-react';
+import { ArrowRight, Play, Upload, MessageSquare, TrendingUp, Shield, Zap, Users, CheckCircle2, Star, Globe, BarChart3, Send, Mail, Rocket, Sparkles, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AuthModal } from './AuthModal';
 import { Footer } from './Footer';
@@ -41,14 +41,12 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   };
 
   const handleWatchDemo = () => {
-    // Smooth scroll to features section
     document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     const result = contactSchema.safeParse(contactForm);
     if (!result.success) {
       toast.error(result.error.errors[0].message);
@@ -58,7 +56,6 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
     setIsSubmitting(true);
     
     try {
-      // Save to Supabase database
       const { error: dbError } = await supabase
         .from('contact_submissions')
         .insert({
@@ -72,7 +69,6 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         throw new Error('Failed to save your message');
       }
 
-      // Send email notifications via edge function
       const { error: emailError } = await supabase.functions.invoke('send-contact-notification', {
         body: {
           name: contactForm.name,
@@ -83,7 +79,6 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
 
       if (emailError) {
         console.error('Email error:', emailError);
-        // Don't throw - message was saved, just email failed
       }
       
       toast.success("Thank you for your message! We'll get back to you soon.");
@@ -96,7 +91,6 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
     }
   };
 
-  // Animation variants
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
@@ -138,161 +132,349 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
     }
   ];
 
-  const stats = [
-    { number: "AI-Powered", label: "Advanced Analytics", icon: Zap },
-    { number: "Real-Time", label: "ESG Analysis", icon: TrendingUp },
-    { number: "100MB+", label: "File Support", icon: Upload },
-    { number: "Enterprise", label: "Grade Security", icon: Shield }
+  const navItems = [
+    { label: '01', text: 'Features' },
+    { label: '02', text: 'About' },
+    { label: '03', text: 'Contact' },
   ];
 
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(260,70%,8%)] via-[hsl(280,60%,15%)] to-[hsl(320,50%,12%)] overflow-hidden">
+      {/* Animated Background Orbs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        {/* Large pink/purple gradient orb - top right */}
+        <motion.div
+          className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, hsl(320 100% 50% / 0.4) 0%, hsl(280 80% 50% / 0.2) 40%, transparent 70%)',
+          }}
+          animate={{
+            scale: [1, 1.1, 1],
+            x: [0, 30, 0],
+            y: [0, -20, 0],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        
+        {/* Cyan/teal gradient orb - bottom left */}
+        <motion.div
+          className="absolute -bottom-48 -left-48 w-[500px] h-[500px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, hsl(174 100% 50% / 0.3) 0%, hsl(200 80% 50% / 0.15) 40%, transparent 70%)',
+          }}
+          animate={{
+            scale: [1, 1.15, 1],
+            x: [0, -20, 0],
+            y: [0, 30, 0],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+        />
+
+        {/* Purple orb - center */}
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, hsl(280 70% 40% / 0.2) 0%, transparent 60%)',
+          }}
+          animate={{
+            scale: [1, 1.05, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+
+        {/* Small floating orbs */}
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            className="absolute w-4 h-4 rounded-full"
+            style={{
+              background: `hsl(${[174, 280, 320, 200, 260][i]} 80% 60%)`,
+              left: `${20 + i * 15}%`,
+              top: `${30 + (i % 3) * 20}%`,
+              boxShadow: `0 0 20px hsl(${[174, 280, 320, 200, 260][i]} 80% 60% / 0.8)`,
+            }}
+            animate={{
+              y: [-20, 20, -20],
+              x: [-10, 10, -10],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 4 + i,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: i * 0.5,
+            }}
+          />
+        ))}
+      </div>
+
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-[#000000] border-b border-white/10 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+      <nav className="fixed top-0 w-full z-50 px-6 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <motion.div 
-            className="flex items-center space-x-2"
+            className="flex items-center gap-3"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[hsl(174,100%,50%)] to-[hsl(280,80%,60%)] flex items-center justify-center shadow-neon-cyan">
               <Globe className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              PrakritiLens
+            <span className="text-xl font-bold text-white">
+              PrakritiLens<span className="text-[hsl(174,100%,50%)]">.</span>
             </span>
           </motion.div>
           
           <motion.div 
-            className="hidden md:flex items-center space-x-8"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            className="hidden md:flex items-center gap-10"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-smooth">Features</a>
-            <a href="#about" className="text-muted-foreground hover:text-foreground transition-smooth">About</a>
-            <a href="#contact" className="text-muted-foreground hover:text-foreground transition-smooth">Contact</a>
-            <Button variant="ghost" onClick={handleSignIn}>Sign In</Button>
-            <Button onClick={handleGetStarted} className="shadow-elegant">
-              Get Started <ArrowRight className="w-4 h-4 ml-2" />
+            {navItems.map((item, index) => (
+              <a
+                key={item.text}
+                href={`#${item.text.toLowerCase()}`}
+                className="flex items-center gap-2 text-white/70 hover:text-white transition-colors group"
+              >
+                <span className="text-xs font-mono text-[hsl(320,100%,60%)] group-hover:text-[hsl(174,100%,50%)] transition-colors">
+                  {item.label}
+                </span>
+                <span className="text-sm">{item.text}</span>
+              </a>
+            ))}
+          </motion.div>
+
+          <motion.div 
+            className="flex items-center gap-3"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            <Button 
+              variant="ghost" 
+              onClick={handleSignIn}
+              className="text-white/80 hover:text-white hover:bg-white/10"
+            >
+              Sign In
+            </Button>
+            <Button 
+              onClick={handleGetStarted}
+              className="bg-gradient-to-r from-[hsl(174,100%,45%)] to-[hsl(174,100%,50%)] hover:from-[hsl(174,100%,50%)] hover:to-[hsl(174,100%,55%)] text-[hsl(260,70%,8%)] font-semibold px-6 shadow-neon-cyan hover:shadow-[0_0_60px_hsl(174,100%,50%/0.8)] transition-all duration-300"
+            >
+              Start
             </Button>
           </motion.div>
         </div>
       </nav>
 
-      {/* Hero Section - Pure Black Background */}
-      <section className="pt-32 pb-20 px-4 relative overflow-hidden bg-[#000000]">
-        {/* Animated Background Effects */}
-        <div className="absolute inset-0 overflow-hidden">
-          {[...Array(30)].map((_, i) => (
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-6 min-h-screen flex items-center">
+        <div className="max-w-7xl mx-auto w-full">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
             <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-emerald-400/30 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                scale: [1, 2, 1],
-                opacity: [0.3, 0.8, 0.3],
-                y: [-20, 20, -20],
-              }}
-              transition={{
-                duration: 3 + Math.random() * 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
-        
-        {/* Glow Effect */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-3xl" />
-        
-        <div className="container mx-auto max-w-6xl relative z-10">
-          <motion.div 
-            className="text-center mb-16"
-            initial="initial"
-            animate="animate"
-            variants={staggerContainer}
-          >
-            <motion.div variants={fadeInUp}>
-              <Badge variant="secondary" className="mb-4 text-sm px-4 py-2 bg-emerald-500/10 text-emerald-300 border-emerald-500/30">
-                🌍 AI-Powered ESG Analytics
-              </Badge>
-            </motion.div>
-            
-            <motion.h1 
-              variants={fadeInUp}
-              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
+              initial="initial"
+              animate="animate"
+              variants={staggerContainer}
+              className="relative z-10"
             >
-              <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-green-400 bg-clip-text text-transparent animate-pulse">
-                PrakritiLens
-              </span>
-              <br />
-              <span className="text-white">AI-Powered ESG Analytics</span>
-            </motion.h1>
-            
-            <motion.p 
-              variants={fadeInUp}
-              className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed"
-            >
-              Transform your ESG reporting with AI-powered analytics. Upload documents up to 100MB, 
-              get instant insights, and make data-driven sustainability decisions.
-            </motion.p>
-            
-            <motion.div 
-              variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
-            >
-              <Button 
-                size="lg" 
-                onClick={handleGetStarted}
-                className="text-lg px-8 py-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-[0_0_30px_rgba(16,185,129,0.5)] hover:shadow-[0_0_40px_rgba(16,185,129,0.7)] transition-all duration-300"
+              <motion.div variants={fadeInUp} className="mb-6">
+                <Badge className="bg-white/10 text-white/90 border-white/20 backdrop-blur-sm px-4 py-2 text-sm">
+                  <Sparkles className="w-4 h-4 mr-2 text-[hsl(174,100%,50%)]" />
+                  Boost Your Sustainability Strategy
+                </Badge>
+              </motion.div>
+
+              <motion.div variants={fadeInUp} className="mb-4">
+                <span className="text-[hsl(320,100%,65%)] text-lg font-medium tracking-wide uppercase">
+                  ESG Optimisation
+                </span>
+              </motion.div>
+              
+              <motion.h1 
+                variants={fadeInUp}
+                className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-[1.1]"
               >
-                Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                onClick={handleWatchDemo}
-                className="text-lg px-8 py-6 border-2 border-emerald-500/50 text-white bg-white/5 hover:bg-white/10 transition-smooth backdrop-blur-sm"
+                <span className="text-white">Maximise Your</span>
+                <br />
+                <span className="bg-gradient-to-r from-[hsl(174,100%,50%)] via-[hsl(200,100%,60%)] to-[hsl(280,80%,65%)] bg-clip-text text-transparent">
+                  Sustainability
+                </span>
+                <br />
+                <span className="text-white">Impact</span>
+              </motion.h1>
+              
+              <motion.p 
+                variants={fadeInUp}
+                className="text-lg text-white/60 mb-8 max-w-lg leading-relaxed"
               >
-                <Play className="w-5 h-5 mr-2" /> Watch Demo
-              </Button>
+                Transform your ESG reporting with AI-powered analytics. Upload documents, 
+                get instant insights, and make data-driven sustainability decisions.
+              </motion.p>
+              
+              <motion.div 
+                variants={fadeInUp}
+                className="flex flex-wrap gap-4"
+              >
+                <Button 
+                  size="lg" 
+                  onClick={handleGetStarted}
+                  className="bg-gradient-to-r from-[hsl(174,100%,45%)] to-[hsl(174,100%,50%)] hover:from-[hsl(174,100%,50%)] hover:to-[hsl(174,100%,55%)] text-[hsl(260,70%,8%)] font-semibold px-8 py-6 text-lg shadow-neon-cyan hover:shadow-[0_0_60px_hsl(174,100%,50%/0.8)] transition-all duration-300 rounded-full"
+                >
+                  <Rocket className="w-5 h-5 mr-2" />
+                  Start Free
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  onClick={handleWatchDemo}
+                  className="border-2 border-white/20 text-white bg-white/5 hover:bg-white/10 hover:border-white/40 px-8 py-6 text-lg backdrop-blur-sm rounded-full transition-all duration-300"
+                >
+                  <Play className="w-5 h-5 mr-2" />
+                  Watch Demo
+                </Button>
+              </motion.div>
+
+              {/* Quick Stats */}
+              <motion.div 
+                variants={fadeInUp}
+                className="mt-12 pt-8 border-t border-white/10"
+              >
+                <p className="text-white/40 text-sm mb-4 uppercase tracking-wider">Trusted by leading organizations</p>
+                <div className="flex gap-8">
+                  {[
+                    { value: '500+', label: 'Reports Analyzed' },
+                    { value: '99%', label: 'Accuracy Rate' },
+                    { value: '24/7', label: 'AI Support' },
+                  ].map((stat, i) => (
+                    <div key={stat.label}>
+                      <div className="text-2xl font-bold text-white">{stat.value}</div>
+                      <div className="text-xs text-white/50">{stat.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
             </motion.div>
 
-            {/* Feature Highlights */}
-            <motion.div 
-              variants={fadeInUp}
-              className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto"
+            {/* Right Content - 3D Visual */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, x: 100 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="relative hidden lg:block"
             >
-              {stats.map((stat, index) => (
-                <motion.div 
-                  key={stat.label}
-                  className="text-center backdrop-blur-sm bg-white/5 p-4 rounded-xl border border-emerald-500/20"
-                  whileHover={{ scale: 1.05, borderColor: "rgba(16, 185, 129, 0.5)" }}
-                  transition={{ type: "spring", stiffness: 300 }}
+              {/* Glowing backdrop */}
+              <div className="absolute inset-0 bg-gradient-to-br from-[hsl(280,80%,50%/0.3)] via-[hsl(320,100%,50%/0.2)] to-[hsl(174,100%,50%/0.3)] rounded-3xl blur-3xl" />
+              
+              {/* Main visual container */}
+              <div className="relative">
+                {/* Laptop/Dashboard mockup */}
+                <motion.div
+                  className="relative bg-gradient-to-br from-[hsl(260,50%,20%)] to-[hsl(280,50%,15%)] rounded-2xl p-1 shadow-intense"
+                  animate={{ y: [-10, 10, -10] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <div className="flex justify-center mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 rounded-lg flex items-center justify-center">
-                      <stat.icon className="w-6 h-6 text-emerald-400" />
+                  <div className="bg-gradient-to-br from-[hsl(260,40%,12%)] to-[hsl(280,40%,8%)] rounded-xl p-6 min-h-[400px]">
+                    {/* Dashboard header */}
+                    <div className="flex items-center gap-2 mb-6">
+                      <div className="w-3 h-3 rounded-full bg-[hsl(0,80%,60%)]" />
+                      <div className="w-3 h-3 rounded-full bg-[hsl(45,100%,55%)]" />
+                      <div className="w-3 h-3 rounded-full bg-[hsl(140,70%,50%)]" />
+                    </div>
+                    
+                    {/* Mock dashboard content */}
+                    <div className="space-y-4">
+                      <div className="flex gap-4">
+                        <div className="flex-1 h-24 rounded-lg bg-gradient-to-br from-[hsl(174,100%,50%/0.2)] to-[hsl(174,100%,50%/0.05)] border border-[hsl(174,100%,50%/0.3)] flex items-center justify-center">
+                          <BarChart3 className="w-10 h-10 text-[hsl(174,100%,50%)]" />
+                        </div>
+                        <div className="flex-1 h-24 rounded-lg bg-gradient-to-br from-[hsl(320,100%,60%/0.2)] to-[hsl(320,100%,60%/0.05)] border border-[hsl(320,100%,60%/0.3)] flex items-center justify-center">
+                          <TrendingUp className="w-10 h-10 text-[hsl(320,100%,60%)]" />
+                        </div>
+                      </div>
+                      
+                      <div className="h-32 rounded-lg bg-gradient-to-r from-[hsl(280,80%,60%/0.2)] via-[hsl(320,100%,60%/0.15)] to-[hsl(174,100%,50%/0.2)] border border-white/10 p-4">
+                        <div className="flex justify-between items-end h-full">
+                          {[40, 65, 45, 80, 55, 90, 70].map((height, i) => (
+                            <motion.div
+                              key={i}
+                              className="w-4 rounded-t bg-gradient-to-t from-[hsl(280,80%,60%)] to-[hsl(174,100%,50%)]"
+                              initial={{ height: 0 }}
+                              animate={{ height: `${height}%` }}
+                              transition={{ duration: 1, delay: 0.5 + i * 0.1 }}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-lg font-bold text-emerald-300 mb-1">{stat.number}</div>
-                  <div className="text-xs text-gray-400">{stat.label}</div>
                 </motion.div>
-              ))}
+
+                {/* Floating rocket icon */}
+                <motion.div
+                  className="absolute -top-8 -right-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-[hsl(280,80%,60%)] to-[hsl(320,100%,60%)] flex items-center justify-center shadow-neon-pink"
+                  animate={{ 
+                    y: [-5, 5, -5],
+                    rotate: [0, 5, 0, -5, 0],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <Rocket className="w-10 h-10 text-white" />
+                </motion.div>
+
+                {/* Floating decorative spheres */}
+                <motion.div
+                  className="absolute -bottom-12 -left-12 w-24 h-24 rounded-full bg-gradient-to-br from-[hsl(174,100%,50%)] to-[hsl(200,100%,60%)] shadow-neon-cyan"
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    y: [-5, 10, -5],
+                  }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                
+                <motion.div
+                  className="absolute top-1/2 -left-16 w-8 h-8 rounded-full bg-gradient-to-br from-[hsl(45,100%,55%)] to-[hsl(30,100%,50%)]"
+                  animate={{ 
+                    y: [-10, 10, -10],
+                    x: [-5, 5, -5],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                  style={{ boxShadow: '0 0 20px hsl(45 100% 55% / 0.6)' }}
+                />
+
+                <motion.div
+                  className="absolute bottom-20 -right-6 w-12 h-12 rounded-full bg-gradient-to-br from-[hsl(140,70%,50%)] to-[hsl(160,80%,45%)]"
+                  animate={{ 
+                    scale: [1, 1.15, 1],
+                    rotate: [0, 180, 360],
+                  }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  style={{ boxShadow: '0 0 25px hsl(140 70% 50% / 0.6)' }}
+                />
+              </div>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-[#000000]">
-        <div className="container mx-auto max-w-6xl">
+      <section id="features" className="py-24 px-6 relative">
+        <div className="max-w-7xl mx-auto">
           <motion.div 
             className="text-center mb-16"
             initial={{ opacity: 0, y: 30 }}
@@ -300,17 +482,22 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Badge variant="secondary" className="mb-4">✨ Powerful Features</Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <Badge className="bg-white/10 text-white/90 border-white/20 backdrop-blur-sm mb-4">
+              <Sparkles className="w-4 h-4 mr-2 text-[hsl(320,100%,60%)]" />
+              Powerful Features
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
               <span className="text-white">Everything You Need for </span>
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">ESG Excellence</span>
+              <span className="bg-gradient-to-r from-[hsl(174,100%,50%)] to-[hsl(320,100%,60%)] bg-clip-text text-transparent">
+                ESG Excellence
+              </span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-white/60 max-w-2xl mx-auto">
               Our comprehensive platform provides all the tools you need to excel in ESG reporting and analysis.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.title}
@@ -319,21 +506,21 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
               >
-                <Card className="h-full gradient-card border-0 shadow-elegant hover:shadow-floating transition-all duration-300">
+                <Card className="h-full neon-glass border-white/10 hover:border-white/20 transition-all duration-300 group">
                   <CardHeader>
-                    <div className="w-12 h-12 bg-gradient-primary rounded-lg flex items-center justify-center mb-4">
-                      <feature.icon className="w-6 h-6 text-white" />
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-[hsl(280,80%,60%)] to-[hsl(320,100%,60%)] flex items-center justify-center mb-4 shadow-neon-purple group-hover:shadow-[0_0_50px_hsl(280,80%,60%/0.6)] transition-all duration-300">
+                      <feature.icon className="w-7 h-7 text-white" />
                     </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                    <CardDescription className="text-base">
+                    <CardTitle className="text-xl text-white">{feature.title}</CardTitle>
+                    <CardDescription className="text-white/60">
                       {feature.description}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
                       {feature.benefits.map((benefit, idx) => (
-                        <li key={idx} className="flex items-center text-sm text-muted-foreground">
-                          <CheckCircle2 className="w-4 h-4 text-primary mr-2 flex-shrink-0" />
+                        <li key={idx} className="flex items-center text-sm text-white/70">
+                          <CheckCircle2 className="w-4 h-4 text-[hsl(174,100%,50%)] mr-2 flex-shrink-0" />
                           {benefit}
                         </li>
                       ))}
@@ -346,9 +533,9 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         </div>
       </section>
 
-      {/* About / Founders Section */}
-      <section id="about" className="py-20 px-4 bg-[#000000]">
-        <div className="container mx-auto max-w-4xl">
+      {/* About Section */}
+      <section id="about" className="py-24 px-6 relative">
+        <div className="max-w-4xl mx-auto">
           <motion.div 
             className="text-center"
             initial={{ opacity: 0, y: 30 }}
@@ -356,58 +543,43 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Badge variant="secondary" className="mb-4">👥 Meet the Founders</Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-6">
+            <Badge className="bg-white/10 text-white/90 border-white/20 backdrop-blur-sm mb-4">
+              <Users className="w-4 h-4 mr-2 text-[hsl(174,100%,50%)]" />
+              Meet the Founders
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
               <span className="text-white">Built with Passion for </span>
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Sustainability</span>
+              <span className="bg-gradient-to-r from-[hsl(280,80%,60%)] to-[hsl(320,100%,60%)] bg-clip-text text-transparent">
+                Sustainability
+              </span>
             </h2>
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+            <p className="text-lg text-white/60 mb-12 max-w-2xl mx-auto">
               PrakritiLens was created to democratize ESG analytics and make sustainability reporting 
               accessible to organizations of all sizes.
             </p>
 
-            <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            <div className="grid md:grid-cols-2 gap-8">
               <motion.div
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.03 }}
                 transition={{ type: "spring", stiffness: 300 }}
                 className="relative group"
               >
-                {/* Flowing multi-color gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-orange-500 rounded-3xl opacity-60 blur-2xl group-hover:opacity-80 transition-opacity duration-500" />
-                
-                {/* Frosted glass card */}
-                <div className="relative bg-gradient-to-br from-gray-900/80 via-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-10 text-center overflow-hidden">
-                  {/* Inner gradient glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-orange-500/10 rounded-3xl" />
-                  
-                  <div className="relative z-10">
-                    <h3 className="text-4xl font-bold text-white mb-3">Hari Vissa</h3>
-                    <p className="text-lg text-gray-300">
-                      Lead Developer & Founder
-                    </p>
-                  </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(174,100%,50%)] via-[hsl(280,80%,60%)] to-[hsl(320,100%,60%)] rounded-2xl opacity-40 blur-xl group-hover:opacity-60 transition-opacity duration-500" />
+                <div className="relative neon-glass rounded-2xl p-10 text-center">
+                  <h3 className="text-3xl font-bold text-white mb-2">Hari Vissa</h3>
+                  <p className="text-[hsl(174,100%,50%)]">Lead Developer & Founder</p>
                 </div>
               </motion.div>
 
               <motion.div
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.03 }}
                 transition={{ type: "spring", stiffness: 300 }}
                 className="relative group"
               >
-                {/* Flowing multi-color gradient background */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500 via-pink-500 to-blue-500 rounded-3xl opacity-60 blur-2xl group-hover:opacity-80 transition-opacity duration-500" />
-                
-                {/* Frosted glass card */}
-                <div className="relative bg-gradient-to-br from-gray-900/80 via-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-10 text-center overflow-hidden">
-                  {/* Inner gradient glow effect */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-pink-500/10 to-blue-500/10 rounded-3xl" />
-                  
-                  <div className="relative z-10">
-                    <h3 className="text-4xl font-bold text-white mb-3">Michelle</h3>
-                    <p className="text-lg text-gray-300">
-                      Designer & Co-Creator
-                    </p>
-                  </div>
+                <div className="absolute inset-0 bg-gradient-to-br from-[hsl(320,100%,60%)] via-[hsl(280,80%,60%)] to-[hsl(174,100%,50%)] rounded-2xl opacity-40 blur-xl group-hover:opacity-60 transition-opacity duration-500" />
+                <div className="relative neon-glass rounded-2xl p-10 text-center">
+                  <h3 className="text-3xl font-bold text-white mb-2">Michelle</h3>
+                  <p className="text-[hsl(320,100%,60%)]">Designer & Co-Creator</p>
                 </div>
               </motion.div>
             </div>
@@ -415,9 +587,9 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         </div>
       </section>
 
-      {/* Contact Us Section */}
-      <section id="contact" className="py-20 px-4 bg-[#000000]">
-        <div className="container mx-auto max-w-4xl">
+      {/* Contact Section */}
+      <section id="contact" className="py-24 px-6 relative">
+        <div className="max-w-xl mx-auto">
           <motion.div 
             className="text-center mb-12"
             initial={{ opacity: 0, y: 30 }}
@@ -425,12 +597,17 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <Badge variant="secondary" className="mb-4">📬 Get in Touch</Badge>
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <Badge className="bg-white/10 text-white/90 border-white/20 backdrop-blur-sm mb-4">
+              <Mail className="w-4 h-4 mr-2 text-[hsl(280,80%,60%)]" />
+              Get in Touch
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">
               <span className="text-white">Contact </span>
-              <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">Us</span>
+              <span className="bg-gradient-to-r from-[hsl(280,80%,60%)] to-[hsl(174,100%,50%)] bg-clip-text text-transparent">
+                Us
+              </span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+            <p className="text-lg text-white/60">
               Have questions about our ESG platform? We'd love to hear from you.
             </p>
           </motion.div>
@@ -440,22 +617,21 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="max-w-xl mx-auto"
           >
-            <Card className="bg-gradient-to-br from-gray-900/80 via-gray-800/80 to-gray-900/80 backdrop-blur-xl border border-white/10">
+            <Card className="neon-glass border-white/10">
               <CardHeader>
                 <CardTitle className="text-white flex items-center gap-2">
-                  <Mail className="w-5 h-5 text-emerald-400" />
+                  <Send className="w-5 h-5 text-[hsl(174,100%,50%)]" />
                   Send us a Message
                 </CardTitle>
-                <CardDescription className="text-gray-400">
-                  Fill out the form below and we'll get back to you as soon as possible.
+                <CardDescription className="text-white/50">
+                  Fill out the form below and we'll get back to you soon.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleContactSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium text-gray-300">
+                    <label htmlFor="name" className="text-sm font-medium text-white/80">
                       Name
                     </label>
                     <Input
@@ -463,13 +639,13 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                       placeholder="Your name"
                       value={contactForm.name}
                       onChange={(e) => setContactForm(prev => ({ ...prev, name: e.target.value }))}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500/50"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[hsl(174,100%,50%)/50] focus:ring-[hsl(174,100%,50%)/20]"
                       maxLength={100}
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium text-gray-300">
+                    <label htmlFor="email" className="text-sm font-medium text-white/80">
                       Email
                     </label>
                     <Input
@@ -478,13 +654,13 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                       placeholder="your@email.com"
                       value={contactForm.email}
                       onChange={(e) => setContactForm(prev => ({ ...prev, email: e.target.value }))}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500/50"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[hsl(174,100%,50%)/50] focus:ring-[hsl(174,100%,50%)/20]"
                       maxLength={255}
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor="message" className="text-sm font-medium text-gray-300">
+                    <label htmlFor="message" className="text-sm font-medium text-white/80">
                       Message
                     </label>
                     <Textarea
@@ -492,10 +668,10 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                       placeholder="Your question or message..."
                       value={contactForm.message}
                       onChange={(e) => setContactForm(prev => ({ ...prev, message: e.target.value }))}
-                      className="bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-emerald-500/50 min-h-[120px]"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[hsl(174,100%,50%)/50] focus:ring-[hsl(174,100%,50%)/20] min-h-[120px]"
                       maxLength={1000}
                     />
-                    <p className="text-xs text-gray-500 text-right">
+                    <p className="text-xs text-white/40 text-right">
                       {contactForm.message.length}/1000
                     </p>
                   </div>
@@ -503,7 +679,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                   <Button 
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all duration-300"
+                    className="w-full bg-gradient-to-r from-[hsl(280,80%,60%)] to-[hsl(320,100%,60%)] hover:from-[hsl(280,80%,65%)] hover:to-[hsl(320,100%,65%)] text-white shadow-neon-purple hover:shadow-[0_0_40px_hsl(280,80%,60%/0.6)] transition-all duration-300"
                   >
                     {isSubmitting ? (
                       <>Sending...</>
@@ -522,51 +698,26 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-[#000000] text-white relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 opacity-10">
-          {[...Array(15)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-32 h-32 border border-white rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.3, 0.1, 0.3],
-              }}
-              transition={{
-                duration: 4 + Math.random() * 2,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
-        
-        <div className="container mx-auto max-w-4xl text-center relative z-10">
+      <section className="py-24 px-6 relative">
+        <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-100">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
               Ready to Transform Your ESG Strategy?
             </h2>
-            <p className="text-xl mb-8 text-gray-100 max-w-2xl mx-auto">
+            <p className="text-lg text-white/60 mb-8 max-w-2xl mx-auto">
               Start analyzing your ESG performance today with advanced AI analytics. 
               No credit card required.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-wrap justify-center gap-4">
               <Button 
                 size="lg" 
-                variant="secondary"
                 onClick={handleGetStarted}
-                className="text-lg px-8 py-6 bg-white text-emerald-600 hover:bg-gray-100 shadow-floating hover:shadow-elegant transition-all duration-300"
+                className="bg-gradient-to-r from-[hsl(174,100%,45%)] to-[hsl(174,100%,50%)] hover:from-[hsl(174,100%,50%)] hover:to-[hsl(174,100%,55%)] text-[hsl(260,70%,8%)] font-semibold px-8 py-6 text-lg shadow-neon-cyan hover:shadow-[0_0_60px_hsl(174,100%,50%/0.8)] transition-all duration-300 rounded-full"
               >
                 Get Started Free <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
@@ -574,9 +725,9 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
                 size="lg" 
                 variant="outline"
                 onClick={handleWatchDemo}
-                className="text-lg px-8 py-6 border-2 border-white/50 text-white bg-white/10 hover:bg-white/20 transition-smooth backdrop-blur-sm"
+                className="border-2 border-white/20 text-white bg-white/5 hover:bg-white/10 hover:border-white/40 px-8 py-6 text-lg backdrop-blur-sm rounded-full transition-all duration-300"
               >
-                <Play className="w-5 h-5 mr-2" /> Watch Demo
+                <Eye className="w-5 h-5 mr-2" /> Learn More
               </Button>
             </div>
           </motion.div>
@@ -591,7 +742,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
         onModeChange={setAuthMode}
       />
 
-      {/* Professional Footer */}
+      {/* Footer */}
       <Footer />
     </div>
   );
