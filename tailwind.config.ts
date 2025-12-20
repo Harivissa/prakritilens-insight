@@ -60,6 +60,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Neon colors for landing page
+        neon: {
+          cyan: "hsl(174 100% 50%)",
+          pink: "hsl(320 100% 60%)",
+          purple: "hsl(280 80% 60%)",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
