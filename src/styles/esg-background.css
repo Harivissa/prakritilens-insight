@@ -1,0 +1,107 @@
+/* ==============================================
+   ESG Background Atmosphere — PrakritiLens
+   Purely decorative layer, sits behind all UI.
+   ============================================== */
+
+.esg-bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Radial gradient mesh — deep forest + tech feel */
+.esg-bg-gradient-mesh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 15% 20%, hsla(158, 64%, 30%, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 85% 70%, hsla(142, 76%, 25%, 0.10) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 50% at 50% 90%, hsla(160, 40%, 15%, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse 40% 40% at 70% 10%, hsla(180, 50%, 20%, 0.06) 0%, transparent 50%);
+}
+
+/* Subtle sustainability grid pattern */
+.esg-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 20%, transparent 70%);
+}
+
+/* SVG overlay for connection lines */
+.esg-bg-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Glowing data nodes */
+.esg-bg-node {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: hsl(158, 64%, 52%);
+}
+
+/* Floating AI particles */
+.esg-bg-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: hsl(142, 76%, 46%);
+}
+
+/* Ambient glow orbs */
+.esg-bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.esg-bg-orb--1 {
+  width: 500px;
+  height: 500px;
+  top: 5%;
+  left: -5%;
+  background: radial-gradient(circle, hsla(158, 64%, 40%, 0.18) 0%, transparent 70%);
+}
+
+.esg-bg-orb--2 {
+  width: 600px;
+  height: 600px;
+  bottom: 10%;
+  right: -10%;
+  background: radial-gradient(circle, hsla(142, 76%, 36%, 0.14) 0%, transparent 70%);
+}
+
+.esg-bg-orb--3 {
+  width: 400px;
+  height: 400px;
+  top: 50%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, hsla(120, 60%, 35%, 0.10) 0%, transparent 70%);
+}
+
+/* Section-level glassmorphism boost — apply to sections over the background */
+.esg-section-glass {
+  position: relative;
+  z-index: 1;
+}
+
+.esg-section-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: -1;
+}
