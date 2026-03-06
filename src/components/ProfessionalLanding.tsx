@@ -8,6 +8,7 @@ import { ArrowRight, Play, Upload, MessageSquare, TrendingUp, Shield, Zap, Users
 import { motion } from 'framer-motion';
 import { AuthModal } from './AuthModal';
 import { Footer } from './Footer';
+import { ESGBackground } from './ESGBackground';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
@@ -146,9 +147,12 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   ];
 
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-screen bg-[#000000] relative">
+      {/* Atmospheric ESG Background */}
+      <ESGBackground />
+
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-[#000000] border-b border-white/10 z-50">
+      <nav className="fixed top-0 w-full bg-[#000000]/80 backdrop-blur-xl border-b border-white/10 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <motion.div 
             className="flex items-center space-x-2"
@@ -182,7 +186,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </nav>
 
       {/* Hero Section - Pure Black Background */}
-      <section className="pt-32 pb-20 px-4 relative overflow-hidden bg-[#000000]">
+      <section className="pt-32 pb-20 px-4 relative overflow-hidden esg-section-glass">
         {/* Animated Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
           {[...Array(30)].map((_, i) => (
@@ -291,7 +295,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 px-4 bg-[#000000]">
+      <section id="features" className="py-20 px-4 esg-section-glass">
         <div className="container mx-auto max-w-6xl">
           <motion.div 
             className="text-center mb-16"
@@ -347,7 +351,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* About / Founders Section */}
-      <section id="about" className="py-20 px-4 bg-[#000000]">
+      <section id="about" className="py-20 px-4 esg-section-glass">
         <div className="container mx-auto max-w-4xl">
           <motion.div 
             className="text-center"
@@ -416,7 +420,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* Contact Us Section */}
-      <section id="contact" className="py-20 px-4 bg-[#000000]">
+      <section id="contact" className="py-20 px-4 esg-section-glass">
         <div className="container mx-auto max-w-4xl">
           <motion.div 
             className="text-center mb-12"
@@ -522,7 +526,7 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-[#000000] text-white relative overflow-hidden">
+      <section className="py-20 px-4 text-white relative overflow-hidden esg-section-glass">
         {/* Animated background elements */}
         <div className="absolute inset-0 opacity-10">
           {[...Array(15)].map((_, i) => (
