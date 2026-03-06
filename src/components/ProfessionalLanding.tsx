@@ -8,6 +8,7 @@ import { ArrowRight, Play, Upload, MessageSquare, TrendingUp, Shield, Zap, Users
 import { motion } from 'framer-motion';
 import { AuthModal } from './AuthModal';
 import { Footer } from './Footer';
+import { ESGBackground } from './ESGBackground';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { supabase } from '@/integrations/supabase/client';
@@ -146,7 +147,10 @@ export const ProfessionalLanding = ({ onGetStarted }: ProfessionalLandingProps) 
   ];
 
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-screen bg-[#000000] relative">
+      {/* Atmospheric ESG Background */}
+      <ESGBackground />
+
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-[#000000] border-b border-white/10 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
