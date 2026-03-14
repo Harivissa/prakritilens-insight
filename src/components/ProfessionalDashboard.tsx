@@ -29,6 +29,7 @@ import { TrendAnalytics } from './TrendAnalytics';
 import { VerificationBanner } from './VerificationBanner';
 import { Footer } from './Footer';
 import { VoiceAssistant } from './VoiceAssistant';
+import { ESGBackground } from './ESGBackground';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { downloadPDF, downloadCSV, downloadPPTX } from '@/utils/pdfGenerator';
 import { supabase } from '@/integrations/supabase/client';
@@ -158,7 +159,8 @@ export const ProfessionalDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative">
+      <ESGBackground />
       {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
