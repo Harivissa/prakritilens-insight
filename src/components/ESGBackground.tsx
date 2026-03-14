@@ -1,21 +1,29 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 /**
  * Atmospheric background layer for the PrakritiLens landing page.
  * Renders behind all content — purely decorative, no UI impact.
+ * Reduces particle count on mobile for performance.
  */
 export const ESGBackground = () => {
+  const isMobile = useIsMobile();
+
+  const particleCount = isMobile ? 15 : 45;
+  const nodeCount = isMobile ? 6 : 12;
+  const lineCount = isMobile ? 4 : 8;
+
   // Memoize random positions so they don't re-generate on every render
   const particles = useMemo(() =>
-    Array.from({ length: 45 }, (_, i) => ({
+    Array.from({ length: particleCount }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
       size: 1 + Math.random() * 3,
       delay: Math.random() * 5,
       duration: 4 + Math.random() * 6,
-    })), []);
+    })), [particleCount]);
 
   const gridNodes = useMemo(() =>
     Array.from({ length: 12 }, (_, i) => ({
