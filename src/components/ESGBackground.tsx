@@ -26,22 +26,22 @@ export const ESGBackground = () => {
     })), [particleCount]);
 
   const gridNodes = useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => ({
+    Array.from({ length: nodeCount }, (_, i) => ({
       id: i,
       x: 10 + Math.random() * 80,
       y: 10 + Math.random() * 80,
       delay: Math.random() * 3,
-    })), []);
+    })), [nodeCount]);
 
   const connectionLines = useMemo(() =>
-    Array.from({ length: 8 }, (_, i) => ({
+    Array.from({ length: lineCount }, (_, i) => ({
       id: i,
       x1: 10 + Math.random() * 80,
       y1: 10 + Math.random() * 80,
       x2: 10 + Math.random() * 80,
       y2: 10 + Math.random() * 80,
       delay: Math.random() * 4,
-    })), []);
+    })), [lineCount]);
 
   return (
     <div className="esg-bg-layer" aria-hidden="true">
