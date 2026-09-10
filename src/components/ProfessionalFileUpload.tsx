@@ -23,6 +23,7 @@ interface UploadedFile {
   file: File;
   status: 'validating' | 'validated' | 'uploading' | 'processing' | 'completed' | 'error' | 'rejected';
   progress: number;
+  stageLabel?: string;
   error?: string;
   validationResult?: ValidationResult;
   analysis?: {
@@ -38,193 +39,140 @@ interface UploadedFile {
   };
 }
 
+// Map real pipeline states onto the card's existing visual states
+const toCardStatus = (s: PipelineStatus['status']): UploadedFile['status'] => {
+  switch (s) {
+    case 'UPLOADING':
+    case 'UPLOADED':
+    case 'EXTRACTING':
+    case 'VALIDATING':
+      return 'uploading';
+    case 'VALIDATED':
+      return 'validated';
+    case 'REJECTED':
+      return 'rejected';
+    case 'ANALYZING':
+    case 'GENERATING_REPORT':
+      return 'processing';
+    case 'COMPLETED':
+      return 'completed';
+    default:
+      return 'error';
+  }
+};
+
 export const ProfessionalFileUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isDragActive, setIsDragActive] = useState(false);
   const [pendingValidation, setPendingValidation] = useState<UploadedFile | null>(null);
-  const { saveReport } = useReports();
-  const { analyzeDocument, isAnalyzing } = useESGScoring();
-  const { uploadAndValidate, uploadToStorage, isProcessing: isValidating } = useDocumentUpload();
+  const { fetchReports } = useReports();
+  const { uploadAndValidate, runAnalysis, discard, isProcessing } = useDocumentUpload();
+
+  const patch = (id: string, updates: Partial<UploadedFile>) =>
+    setUploadedFiles(prev => prev.map(f => f.id === id ? { ...f, ...updates } : f));
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    // Process files one by one for validation
+    // Process files one by one: upload → verify → extract → validate
     for (const file of acceptedFiles) {
-      const fileData: UploadedFile = {
-        id: Math.random().toString(36).substr(2, 9),
-        file,
-        status: 'validating',
-        progress: 0
-      };
+      const tempId = crypto.randomUUID();
+      setUploadedFiles(prev => [...prev, { id: tempId, file, status: 'uploading', progress: 0, stageLabel: 'Preparing…' }]);
 
-      setUploadedFiles(prev => [...prev, fileData]);
-      
-      // Run validation using new hook
-      const { validation } = await uploadAndValidate(file);
-      
+      const { id, validation } = await uploadAndValidate(file, (s) =>
+        patch(tempId, { status: toCardStatus(s.status), progress: s.progress, stageLabel: s.label, error: s.error })
+      );
+
+      if (!id) {
+        // Rejected before upload (type/size) — toast already shown by the hook
+        setUploadedFiles(prev => prev.filter(f => f.id !== tempId));
+        continue;
+      }
+
+      // Re-key the card to the pipeline id so analysis can be resumed on it
+      setUploadedFiles(prev => prev.map(f => f.id === tempId ? { ...f, id } : f));
+
       if (validation) {
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === fileData.id ? { 
-            ...f, 
-            status: validation.final_validation_status === 'Rejected: Not an ESG report' ? 'rejected' : 'validated',
-            validationResult: validation 
-          } : f)
-        );
-        
-        // Show validation modal for user decision (only for accepted/maybe documents)
-        if (validation.final_validation_status !== 'Rejected: Not an ESG report') {
-          setPendingValidation({ ...fileData, validationResult: validation });
+        const rejected = validation.classification === 'INVALID' || validation.final_validation_status === 'Rejected: Not an ESG report';
+        patch(id, { status: rejected ? 'rejected' : 'validated', validationResult: validation, error: rejected ? validation.rejection_reason : undefined });
+
+        if (!rejected) {
+          setPendingValidation({ id, file, status: 'validated', progress: 0, validationResult: validation });
         } else {
           toast({
             title: 'Document Rejected',
-            description: 'This file does not appear to be an ESG/Sustainability report.',
+            description: validation.rejection_reason || 'This file does not appear to be an ESG/Sustainability report.',
             variant: 'destructive',
           });
         }
-      } else {
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === fileData.id ? { 
-            ...f, 
-            status: 'error',
-            error: 'Document validation failed. Please try again.' 
-          } : f)
-        );
       }
+      // else: the hook already marked the card as error with the real failure reason
     }
   }, [uploadAndValidate]);
 
   // Handler for when user approves validation and wants to proceed
   const handleProceedWithAnalysis = useCallback(async (fileData: UploadedFile) => {
     setPendingValidation(null);
-    
+    patch(fileData.id, { status: 'processing', progress: 0, stageLabel: 'Starting analysis…', error: undefined });
+
+    if (fileData.file.size > 10 * 1024 * 1024) {
+      toast({ title: 'Processing Large File', description: `Analyzing ${fileData.file.name} - this may take a few minutes.` });
+    }
+
     try {
-      const fileSize = fileData.file.size;
-      const isLargeFile = fileSize > 10 * 1024 * 1024;
-      
-      // Update status to uploading
-      setUploadedFiles(prev => 
-        prev.map(f => f.id === fileData.id ? { ...f, status: 'uploading', progress: 0 } : f)
-      );
-
-      const uploadSteps = isLargeFile ? 30 : 10;
-      const uploadDelay = isLargeFile ? 150 : 50;
-      
-      for (let step = 0; step <= uploadSteps; step++) {
-        const progress = (step / uploadSteps) * 100;
-        await new Promise(resolve => setTimeout(resolve, uploadDelay));
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === fileData.id ? { ...f, progress } : f)
-        );
-      }
-
-      // Start analysis
-      setUploadedFiles(prev => 
-        prev.map(f => f.id === fileData.id ? { ...f, status: 'processing', progress: 0 } : f)
-      );
-
-      if (isLargeFile) {
-        toast({
-          title: "Processing Large File",
-          description: `Analyzing ${fileData.file.name} - this may take a moment.`,
-        });
-      }
-
-      const analysis = await analyzeDocument(fileData.file);
-
-      const processSteps = isLargeFile ? 25 : 5;
-      const processDelay = isLargeFile ? 400 : 200;
-      
-      for (let step = 0; step <= processSteps; step++) {
-        const progress = (step / processSteps) * 100;
-        await new Promise(resolve => setTimeout(resolve, processDelay));
-        setUploadedFiles(prev => 
-          prev.map(f => f.id === fileData.id ? { ...f, progress } : f)
-        );
-      }
-
-      // Upload to storage with proper folder structure and metadata
-      const storageResult = await uploadToStorage(fileData.file, fileData.validationResult);
-
-      setUploadedFiles(prev => 
-        prev.map(f => f.id === fileData.id ? { 
-          ...f, 
-          status: 'completed', 
-          progress: 100,
-          analysis 
-        } : f)
-      );
-
-      // Use company name from validation if available
-      const companyName = fileData.validationResult?.company_name || 
-                          analysis.metadata?.company_name || 
-                          fileData.file.name.replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
-      
-      await saveReport({
-        score: analysis.score,
-        company_name: companyName,
-        file_name: fileData.file.name,
-        file_url: storageResult.signedUrl,
-        file_path: storageResult.filePath,
-        analysis_data: analysis,
-        report_year: fileData.validationResult?.detected_year || undefined,
-        page_count: fileData.validationResult?.page_count,
-        validation_status: fileData.validationResult?.final_validation_status,
-        confidence_level: fileData.validationResult?.confidence_level,
+      const { analysis, warnings } = await runAnalysis(fileData.id, {
+        onStatus: (s) => patch(fileData.id, { status: toCardStatus(s.status), progress: s.progress, stageLabel: s.label, error: s.error }),
       });
 
-      const displayName = companyName;
-      const scoreRating = analysis.score >= 80 ? '🌟 Excellent' : 
-                          analysis.score >= 60 ? '✓ Good' : 
-                          analysis.score >= 40 ? '⚠ Fair' : '⚠ Needs Improvement';
-      
+      patch(fileData.id, {
+        status: 'completed',
+        progress: 100,
+        analysis: {
+          score: Number(analysis?.score ?? 0),
+          breakdown: {
+            environmental: Number(analysis?.breakdown?.environmental ?? 0),
+            social: Number(analysis?.breakdown?.social ?? 0),
+            governance: Number(analysis?.breakdown?.governance ?? 0),
+          },
+          risks: analysis?.risks ?? [],
+          opportunities: analysis?.opportunities ?? [],
+          analysis: analysis?.analysis ?? [],
+        },
+      });
+
+      await fetchReports();
+
+      const companyName = analysis?.metadata?.company_name || fileData.validationResult?.company_name || fileData.file.name;
+      const score = Number(analysis?.score ?? 0);
+      const scoreRating = score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : score >= 40 ? 'Fair' : 'Needs Improvement';
       toast({
-        title: "✅ Analysis Complete",
-        description: `${displayName} - ESG Score: ${analysis.score.toFixed(1)}/100 (${scoreRating})`,
+        title: 'Analysis Complete',
+        description: `${companyName} - ESG Score: ${score.toFixed(1)}/100 (${scoreRating})${warnings.length ? `. Note: ${warnings[0]}` : ''}`,
       });
-
     } catch (error: any) {
       console.error('File processing error:', error);
-      
-      let errorMessage = 'Analysis failed. Please try again.';
-      if (error.message?.includes('network')) {
-        errorMessage = 'Network error. Please check your connection.';
-      }
-      
-      setUploadedFiles(prev => 
-        prev.map(f => f.id === fileData.id ? { 
-          ...f, 
-          status: 'error', 
-          error: errorMessage
-        } : f)
-      );
-
-      toast({
-        title: "Analysis Failed",
-        description: `Failed to analyze ${fileData.file.name}: ${errorMessage}`,
-        variant: "destructive",
-      });
+      const errorMessage = error?.message || 'Analysis failed. Please try again.';
+      patch(fileData.id, { status: 'error', error: errorMessage });
+      toast({ title: 'Analysis Failed', description: `${fileData.file.name}: ${errorMessage}`, variant: 'destructive' });
     }
-  }, [analyzeDocument, uploadToStorage, saveReport]);
+  }, [runAnalysis, fetchReports]);
 
   // Handler for when user rejects/cancels validation
   const handleRejectValidation = useCallback((fileId: string) => {
     setPendingValidation(null);
-    setUploadedFiles(prev => 
-      prev.map(f => f.id === fileId ? { ...f, status: 'rejected' } : f)
-    );
-  }, []);
+    void discard(fileId);
+    patch(fileId, { status: 'rejected', error: 'Analysis declined by user.' });
+  }, [discard]);
 
   const removeFile = (id: string) => {
+    void discard(id);
     setUploadedFiles(prev => prev.filter(f => f.id !== id));
   };
 
+  // Retry re-runs the whole pipeline from upload so nothing stale is reused
   const retryFile = (id: string) => {
-    const file = uploadedFiles.find(f => f.id === id);
-    if (file) {
-      setUploadedFiles(prev => 
-        prev.map(f => f.id === id ? { ...f, status: 'uploading', progress: 0, error: undefined } : f)
-      );
-      handleProceedWithAnalysis(file);
-    }
+    const entry = uploadedFiles.find(f => f.id === id);
+    if (!entry) return;
+    setUploadedFiles(prev => prev.filter(f => f.id !== id));
+    void onDrop([entry.file]);
   };
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -234,39 +182,36 @@ export const ProfessionalFileUpload = () => {
     accept: {
       'application/pdf': ['.pdf'],
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-      'application/msword': ['.doc'],
       'text/plain': ['.txt'],
       'text/csv': ['.csv'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'application/json': ['.json'],
-      'application/xml': ['.xml'],
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp'],
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx']
     },
-    // NO FILE SIZE RESTRICTIONS - Support all file sizes
-    maxSize: undefined,
+    maxSize: MAX_FILE_SIZE,
     multiple: true,
     onDropRejected: (fileRejections) => {
       setIsDragActive(false);
-      
-      // Only show errors for file type issues
+
       const typeErrors = fileRejections.filter(r => r.errors.some(e => e.code === 'file-invalid-type'));
-      
       if (typeErrors.length > 0) {
         const fileNames = typeErrors.map(r => r.file.name).join(', ');
         toast({
           title: 'Unsupported File Type',
-          description: `Unsupported files: ${fileNames}. Please upload document files (PDF, DOCX, CSV, Excel, TXT, etc.).`,
+          description: `Unsupported files: ${fileNames}. Please upload PDF, DOCX, TXT or CSV documents.`,
           variant: 'destructive',
         });
       }
-      
-      // Handle other errors
-      const otherErrors = fileRejections.filter(r => 
+
+      const sizeErrors = fileRejections.filter(r => r.errors.some(e => e.code === 'file-too-large'));
+      if (sizeErrors.length > 0) {
+        toast({
+          title: 'File Too Large',
+          description: `Maximum file size is ${MAX_FILE_SIZE / 1024 / 1024}MB.`,
+          variant: 'destructive',
+        });
+      }
+
+      const otherErrors = fileRejections.filter(r =>
         !r.errors.some(e => ['file-too-large', 'file-invalid-type'].includes(e.code))
       );
-      
       if (otherErrors.length > 0) {
         const reasons = otherErrors.flatMap(r => r.errors.map(e => e.message)).join('; ');
         toast({
