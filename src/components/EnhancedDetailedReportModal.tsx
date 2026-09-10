@@ -43,10 +43,10 @@ export const EnhancedDetailedReportModal = ({ isOpen, onClose, fileName, reportD
   const [activeChartFilter, setActiveChartFilter] = React.useState<'all' | 'environmental' | 'social' | 'governance'>('all');
   const printRef = useRef<HTMLDivElement>(null);
   
-  // Generate detailed data based on the score
-  const environmentalScore = reportData.breakdown?.environmental || Math.max(10, reportData.score + (Math.random() - 0.5) * 20);
-  const socialScore = reportData.breakdown?.social || Math.max(10, reportData.score + (Math.random() - 0.5) * 20);
-  const governanceScore = reportData.breakdown?.governance || Math.max(10, reportData.score + (Math.random() - 0.5) * 20);
+  // Pillar scores come only from the stored analysis; an unscored pillar is shown as 0, never invented
+  const environmentalScore = Number(reportData.breakdown?.environmental ?? 0);
+  const socialScore = Number(reportData.breakdown?.social ?? 0);
+  const governanceScore = Number(reportData.breakdown?.governance ?? 0);
 
   const allChartData = [
     { name: 'Environmental', value: environmentalScore, color: '#10b981' },

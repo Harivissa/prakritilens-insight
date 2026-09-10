@@ -99,8 +99,15 @@ export function classifyDocument(pages: PageText[]): HeuristicResult {
   // Title signals from the first 3 pages (cover + TOC)
   const front = cleanPages.slice(0, 3).map((p) => p.text).join('\n');
   let titleSignal: { type: string; weight: number } | null = null;
+  // The cover page decides the document type; the rest of the front matter only adds weight
+  const cover = cleanPages[0]?.text ?? '';
   for (const ts of TITLE_SIGNALS) {
-    if (ts.pattern.test(front) && (!titleSignal || ts.weight > titleSignal.weight)) titleSignal = { type: ts.type, weight: ts.weight };
+    if (ts.pattern.test(cover) && (!titleSignal || ts.weight > titleSignal.weight)) titleSignal = { type: ts.type, weight: ts.weight };
+  }
+  if (!titleSignal) {
+    for (const ts of TITLE_SIGNALS) {
+      if (ts.pattern.test(front) && (!titleSignal || ts.weight > titleSignal.weight)) titleSignal = { type: ts.type, weight: ts.weight };
+    }
   }
   // A title match deeper in the document (e.g. running header) still counts, at half weight
   if (!titleSignal) {
@@ -176,7 +183,7 @@ export function classifyDocument(pages: PageText[]): HeuristicResult {
       negative_signals: negativeKeys,
     },
     top_esg_pages: topEsgPages,
-    candidate_company_names: extractCompanyCandidates(front),
+    candidate_company_names: extractCompanyCandidates(cleanPages.slice(0, 12).map((p) => p.text).join('\n')),
     candidate_years: extractYearCandidates(front),
   };
 }
@@ -190,7 +197,18 @@ export function extractCompanyCandidates(front: string): string[] {
     if (name.length < 4 || name.length > 60) continue;
     out.set(name, (out.get(name) || 0) + 1);
   }
-  return [...out.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+  const ranked = [...out.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5).map(([n]) => n);
+  if (ranked.length > 0) return ranked;
+  // Fallback: brands without a legal suffix ("Apple's", "Apple is committed") — most frequent possessive/subject brand word
+  const stop = new Set(['The', 'Our', 'This', 'That', 'These', 'Those', 'Its', 'Their', 'Report', 'Company', 'Board', 'Group', 'Environmental', 'Sustainability', 'Social', 'Governance', 'Climate', 'Scope', 'Global', 'Annual', 'Fiscal', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'Introduction', 'Appendix', 'Contents', 'Data', 'Total', 'Net', 'Carbon', 'Energy', 'Water', 'Waste', 'People', 'Planet', 'Progress']);
+  const brand = new Map<string, number>();
+  const re2 = /\b([A-Z][A-Za-z0-9&.\-]{2,}(?:\s+[A-Z][A-Za-z0-9&.\-]+){0,2})(?:[’']s\b|\s+(?:is|has|was|continues|remains|announced|reported|achieved)\b)/g;
+  while ((m = re2.exec(front)) !== null) {
+    const name = m[1].trim();
+    if (stop.has(name) || name.split(' ').every((w) => stop.has(w))) continue;
+    brand.set(name, (brand.get(name) || 0) + 1);
+  }
+  return [...brand.entries()].filter(([, c]) => c >= 3).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([n]) => n);
 }
 
 export function extractYearCandidates(front: string): number[] {
@@ -211,7 +229,11 @@ export function snippetOnPage(snippet: string, pageText: string): boolean {
   const t = normalize(pageText).toLowerCase();
   if (!s || !t) return false;
   if (t.includes(s)) return true;
-  // token overlap fallback for long snippets
+  // Every number quoted in the snippet must exist on the page — a citation with a changed figure is not evidence
+  const compact = t.replace(/[\s,]/g, '');
+  const numbers = s.match(/\d[\d,]*(?:\.\d+)?/g) ?? [];
+  if (numbers.some((n) => !compact.includes(n.replace(/,/g, '')))) return false;
+  // token overlap fallback for long snippets (whitespace / OCR noise tolerant)
   const tokens = s.split(' ').filter((w) => w.length > 3);
   if (tokens.length < 4) return false;
   const found = tokens.filter((w) => t.includes(w)).length;

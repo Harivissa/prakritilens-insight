@@ -1,6 +1,27 @@
-// Document Validation Types for PrakritiLens
+// Document Validation & Processing Types for PrakritiLens
+
+export type DocumentClassification = 'VALID' | 'PARTIAL' | 'INVALID';
+
+export interface ReportMetadata {
+  company_name: string;
+  reporting_year: number | null;
+  reporting_period: string | null;
+  industry: string;
+  headquarters_country: string;
+  document_type: string;
+  source: 'ai+heuristic' | 'heuristic';
+}
 
 export interface ValidationResult {
+  // ---- New contract ----
+  classification?: DocumentClassification;
+  confidence?: number;
+  reasons?: string[];
+  signals?: Record<string, unknown>;
+  metadata?: ReportMetadata;
+  ai_review_available?: boolean;
+  ai_review_error?: string | null;
+  // ---- Legacy fields consumed by the existing UI ----
   company_name: string;
   detected_year: number | null;
   page_count?: number;
@@ -28,17 +49,50 @@ export interface ValidationResult {
   };
 }
 
+/** Real processing states of the pipeline */
+export type ProcessingStatus =
+  | 'UPLOADING'
+  | 'UPLOADED'
+  | 'EXTRACTING'
+  | 'VALIDATING'
+  | 'VALIDATED'
+  | 'REJECTED'
+  | 'ANALYZING'
+  | 'GENERATING_REPORT'
+  | 'COMPLETED'
+  | 'FAILED';
+
+export interface PipelineStatus {
+  status: ProcessingStatus;
+  /** 0-100 across the whole pipeline */
+  progress: number;
+  /** Human readable stage description, e.g. "Extracting page 42 of 180" */
+  label: string;
+  error?: string;
+}
+
 export interface UploadedFile {
   id: string;
   file: File;
   name: string;
   size: number;
   type: string;
-  status: 'pending' | 'uploading' | 'extracting' | 'validating' | 'validated' | 'analyzing' | 'completed' | 'error' | 'rejected';
+  status: 'pending' | 'uploading' | 'uploaded' | 'extracting' | 'validating' | 'validated' | 'analyzing' | 'generating_report' | 'completed' | 'error' | 'rejected';
+  pipelineStatus?: ProcessingStatus;
+  stageLabel?: string;
   progress: number;
   error?: string;
   validationResult?: ValidationResult;
   analysisResult?: any;
+  reportId?: string;
+  storagePath?: string;
+  extraction?: {
+    pageCount: number;
+    method: string;
+    totalChars: number;
+    ocrPages: number;
+    warnings: string[];
+  };
   uploadedAt: Date;
 }
 

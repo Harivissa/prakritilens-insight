@@ -42,6 +42,7 @@ export const TrendAnalytics = () => {
       });
     }
 
+    let lastKnown = { environmental: 0, social: 0, governance: 0 };
     return periods.map((period, index) => {
       // Find reports from this period
       const periodReports = reports.filter(report => {
@@ -50,21 +51,17 @@ export const TrendAnalytics = () => {
                reportDate.getFullYear() === period.fullDate.getFullYear();
       });
 
-      // Calculate averages or use baseline + trend
-      const baseScore = 65 + Math.sin(index * 0.5) * 10;
-      const envScore = periodReports.length > 0 
-        ? periodReports.reduce((sum, r) => sum + (r.analysis_data?.breakdown?.environmental || baseScore), 0) / periodReports.length
-        : baseScore + Math.random() * 10 - 5;
-      
-      const socialScore = periodReports.length > 0
-        ? periodReports.reduce((sum, r) => sum + (r.analysis_data?.breakdown?.social || baseScore), 0) / periodReports.length
-        : baseScore + Math.random() * 8 - 4;
+      // Real data only: average the analysed reports in this period; otherwise carry the last known value forward
+      const avg = (key: 'environmental' | 'social' | 'governance', fallback: number) => {
+        const vals = periodReports.map(r => Number(r.analysis_data?.breakdown?.[key])).filter(v => Number.isFinite(v));
+        return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : fallback;
+      };
+      const envScore = avg('environmental', lastKnown.environmental);
+      const socialScore = avg('social', lastKnown.social);
+      const govScore = avg('governance', lastKnown.governance);
+      lastKnown = { environmental: envScore, social: socialScore, governance: govScore };
 
-      const govScore = periodReports.length > 0
-        ? periodReports.reduce((sum, r) => sum + (r.analysis_data?.breakdown?.governance || baseScore), 0) / periodReports.length
-        : baseScore + Math.random() * 6 - 3;
-
-      const overallScore = (envScore * 0.4 + socialScore * 0.35 + govScore * 0.25);
+      const overallScore = (envScore * 0.4 + socialScore * 0.3 + govScore * 0.3);
 
       return {
         period: period.period,
