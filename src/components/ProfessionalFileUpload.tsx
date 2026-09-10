@@ -13,9 +13,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useReports } from '@/hooks/useReports';
-import { useESGScoring } from '@/hooks/useESGScoring';
-import { useDocumentUpload } from '@/hooks/useDocumentUpload';
-import { DocumentValidationResult, type ValidationResult } from '@/components/DocumentValidationResult';
+import { useDocumentUpload, MAX_FILE_SIZE } from '@/hooks/useDocumentUpload';
+import { DocumentValidationResult } from '@/components/DocumentValidationResult';
+import type { ValidationResult, PipelineStatus } from '@/types/validation';
 import { toast } from '@/hooks/use-toast';
 
 interface UploadedFile {
@@ -280,7 +280,7 @@ export const ProfessionalFileUpload = () => {
                   handleRejectValidation(pendingValidation.id);
                   removeFile(pendingValidation.id);
                 }}
-                isLoading={isAnalyzing}
+                isLoading={isProcessing}
               />
             </div>
           </motion.div>
@@ -498,7 +498,7 @@ export const ProfessionalFileUpload = () => {
                               {fileData.status === 'uploading' && (
                                 <div>
                                   <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-muted-foreground">Uploading...</span>
+                                    <span className="text-muted-foreground">{fileData.stageLabel || 'Uploading...'}</span>
                                     <span className="text-muted-foreground">{fileData.progress}%</span>
                                   </div>
                                   <Progress value={fileData.progress} className="h-2" />
@@ -508,7 +508,7 @@ export const ProfessionalFileUpload = () => {
                               {fileData.status === 'processing' && (
                                 <div>
                                   <div className="flex justify-between text-sm mb-1">
-                                    <span className="text-primary">Analyzing with AI...</span>
+                                    <span className="text-primary">{fileData.stageLabel || 'Analyzing with AI...'}</span>
                                     <span className="text-primary">{fileData.progress}%</span>
                                   </div>
                                   <Progress value={fileData.progress} className="h-2" />
