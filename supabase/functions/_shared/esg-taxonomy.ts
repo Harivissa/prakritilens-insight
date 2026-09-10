@@ -155,7 +155,7 @@ export const SECTION_HEADING_PATTERNS: RegExp[] = [
 ];
 
 export const TITLE_SIGNALS: { pattern: RegExp; type: string; weight: number }[] = [
-  { pattern: /\b(sustainability|environmental|esg|corporate responsibility|corporate social responsibility|csr|impact|citizenship|responsible business|non[- ]financial|climate|tcfd)\s+(report|review|disclosure|statement|update)\b/i, type: 'Sustainability Report', weight: 25 },
+  { pattern: /\b(sustainability|environmental|esg|corporate responsibility|corporate social responsibility|csr|impact|citizenship|responsible business|non[- ]financial|climate|tcfd)\s+(?:(?:progress|performance|and social|&\s*social|responsibility|stewardship)\s+)?(report|review|disclosure|statement|update)\b/i, type: 'Sustainability Report', weight: 25 },
   { pattern: /\bintegrated (annual )?report\b/i, type: 'Integrated Report', weight: 25 },
   { pattern: /\b(annual report|form 10-k|annual review|annual report and accounts|universal registration document)\b/i, type: 'Annual Report', weight: 15 },
   { pattern: /\b(esg|sustainability) (data ?book|databook|fact ?book|supplement|appendix)\b/i, type: 'ESG Data Supplement', weight: 20 },
@@ -164,7 +164,7 @@ export const TITLE_SIGNALS: { pattern: RegExp; type: string; weight: number }[] 
 
 /** Negative signals: strong indications the file is NOT a corporate report */
 export const NEGATIVE_SIGNALS: { key: string; pattern: RegExp; weight: number }[] = [
-  { key: 'academic_paper', pattern: /\b(abstract|keywords:|doi:|et al\.|literature review|methodology|this paper|we propose|references\s*\n)\b/i, weight: 12 },
+  { key: 'academic_paper', pattern: /\b(keywords:|doi:|et al\.|literature review|this paper|we propose|in this study|our findings suggest)\b/i, weight: 12 },
   { key: 'textbook', pattern: /\b(chapter \d+|exercise \d|homework|lecture \d|syllabus|learning objectives|end of chapter)\b/i, weight: 15 },
   { key: 'source_code', pattern: /(\bfunction\s*\(|\bimport\s+\w+\s+from\b|#include\s*<|\bpublic static void\b|console\.log|def \w+\(.*\):)/, weight: 20 },
   { key: 'resume', pattern: /\b(curriculum vitae|resume|work experience|professional summary|skills:|references available)\b/i, weight: 20 },

@@ -31,7 +31,7 @@ Deno.test("scores are deterministic and weighted E40/S30/G30 by default", () => 
     m({ category: "environmental", metric_key: "emissions_reduction_pct", value: 25, unit: "%" }),
     m({ category: "social", metric_key: "ltifr", value: 0.3 }),
     m({ category: "social", metric_key: "women_workforce_pct", value: 45, unit: "%" }),
-    m({ category: "governance", metric_key: "board_independence_pct", value: 70, unit: "%" }),
+    m({ category: "governance", metric_key: "independent_directors_pct", value: 70, unit: "%" }),
   ];
   const a = computeScores(metrics, []);
   const b = computeScores(metrics, []);
@@ -51,7 +51,7 @@ Deno.test("user-adjusted weights change the overall score but not pillar scores"
   const metrics: ExtractedMetric[] = [
     m({ category: "environmental", metric_key: "renewable_energy_pct", value: 90, unit: "%" }),
     m({ category: "social", metric_key: "ltifr", value: 6 }),
-    m({ category: "governance", metric_key: "board_independence_pct", value: 40, unit: "%" }),
+    m({ category: "governance", metric_key: "independent_directors_pct", value: 40, unit: "%" }),
   ];
   const base = computeScores(metrics, []);
   const envHeavy = computeScores(metrics, [], { environmental: 80, social: 10, governance: 10 });
@@ -60,7 +60,7 @@ Deno.test("user-adjusted weights change the overall score but not pillar scores"
 });
 
 Deno.test("high-severity risks reduce the pillar score", () => {
-  const metrics: ExtractedMetric[] = [m({ category: "governance", metric_key: "board_independence_pct", value: 70, unit: "%" })];
+  const metrics: ExtractedMetric[] = [m({ category: "governance", metric_key: "independent_directors_pct", value: 70, unit: "%" })];
   const risk: RiskItem = { kind: "risk", category: "governance", severity: "high", title: "Regulatory investigation", description: "", evidence: "snippet", page: 4, confidence: 0.9 };
   const clean = computeScores(metrics, []);
   const risky = computeScores(metrics, [risk]);

@@ -99,8 +99,15 @@ export function classifyDocument(pages: PageText[]): HeuristicResult {
   // Title signals from the first 3 pages (cover + TOC)
   const front = cleanPages.slice(0, 3).map((p) => p.text).join('\n');
   let titleSignal: { type: string; weight: number } | null = null;
+  // The cover page decides the document type; the rest of the front matter only adds weight
+  const cover = cleanPages[0]?.text ?? '';
   for (const ts of TITLE_SIGNALS) {
-    if (ts.pattern.test(front) && (!titleSignal || ts.weight > titleSignal.weight)) titleSignal = { type: ts.type, weight: ts.weight };
+    if (ts.pattern.test(cover) && (!titleSignal || ts.weight > titleSignal.weight)) titleSignal = { type: ts.type, weight: ts.weight };
+  }
+  if (!titleSignal) {
+    for (const ts of TITLE_SIGNALS) {
+      if (ts.pattern.test(front) && (!titleSignal || ts.weight > titleSignal.weight)) titleSignal = { type: ts.type, weight: ts.weight };
+    }
   }
   // A title match deeper in the document (e.g. running header) still counts, at half weight
   if (!titleSignal) {
@@ -211,7 +218,11 @@ export function snippetOnPage(snippet: string, pageText: string): boolean {
   const t = normalize(pageText).toLowerCase();
   if (!s || !t) return false;
   if (t.includes(s)) return true;
-  // token overlap fallback for long snippets
+  // Every number quoted in the snippet must exist on the page — a citation with a changed figure is not evidence
+  const compact = t.replace(/[\s,]/g, '');
+  const numbers = s.match(/\d[\d,]*(?:\.\d+)?/g) ?? [];
+  if (numbers.some((n) => !compact.includes(n.replace(/,/g, '')))) return false;
+  // token overlap fallback for long snippets (whitespace / OCR noise tolerant)
   const tokens = s.split(' ').filter((w) => w.length > 3);
   if (tokens.length < 4) return false;
   const found = tokens.filter((w) => t.includes(w)).length;
