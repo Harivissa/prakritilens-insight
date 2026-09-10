@@ -54,7 +54,7 @@ Deno.test("user-adjusted weights change the overall score but not pillar scores"
     m({ category: "governance", metric_key: "board_independence_pct", value: 40, unit: "%" }),
   ];
   const base = computeScores(metrics, []);
-  const envHeavy = computeScores(metrics, { environmental: 80, social: 10, governance: 10 });
+  const envHeavy = computeScores(metrics, [], { environmental: 80, social: 10, governance: 10 });
   assertEquals(base.pillars.environmental.score, envHeavy.pillars.environmental.score);
   assert((envHeavy.overall ?? 0) > (base.overall ?? 0));
 });
@@ -80,6 +80,9 @@ Deno.test("historical trends and forecasts derive only from multi-year metrics",
   assert(scope1, "scope1 trend present");
   assert(!trends.find((t) => t.metric_key === "ltifr"), "single-year metric has no trend");
   const f = forecast(scope1!.series, 2);
-  assertEquals(f.length, 2);
-  assert(f[0].year === 2024 && f[0].value < 80, "linear projection continues the decline");
+  assert(f, "forecast available with 3 data points");
+  assertEquals(f!.status, "ESTIMATED");
+  assertEquals(f!.points.length, 2);
+  assert(f!.points[0].year === 2024 && f!.points[0].value < 80, "linear projection continues the decline");
+  assertEquals(forecast(scope1!.series.slice(0, 2), 2), null, "no forecast from fewer than 3 points");
 });
