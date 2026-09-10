@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      analysis_runs: {
+        Row: {
+          details: Json
+          error: string | null
+          finished_at: string | null
+          id: string
+          progress: number
+          report_id: string | null
+          stage: string | null
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          details?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          progress?: number
+          report_id?: string | null
+          stage?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          details?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          progress?: number
+          report_id?: string | null
+          stage?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analysis_runs_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_conversations: {
         Row: {
           created_at: string | null
@@ -188,6 +238,218 @@ export type Database = {
           },
         ]
       }
+      document_pages: {
+        Row: {
+          char_count: number
+          created_at: string
+          id: string
+          page_number: number
+          report_id: string
+          source: string
+          text: string
+          user_id: string
+        }
+        Insert: {
+          char_count?: number
+          created_at?: string
+          id?: string
+          page_number: number
+          report_id: string
+          source?: string
+          text: string
+          user_id: string
+        }
+        Update: {
+          char_count?: number
+          created_at?: string
+          id?: string
+          page_number?: number
+          report_id?: string
+          source?: string
+          text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_pages_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      esg_scores: {
+        Row: {
+          confidence: string | null
+          created_at: string
+          data_coverage: number | null
+          disclosure_score: number | null
+          evidence: Json
+          id: string
+          indicators_used: Json
+          negative_factors: Json
+          performance_score: number | null
+          pillar: string
+          positive_factors: Json
+          report_id: string
+          score: number | null
+          user_id: string
+          weights: Json
+        }
+        Insert: {
+          confidence?: string | null
+          created_at?: string
+          data_coverage?: number | null
+          disclosure_score?: number | null
+          evidence?: Json
+          id?: string
+          indicators_used?: Json
+          negative_factors?: Json
+          performance_score?: number | null
+          pillar: string
+          positive_factors?: Json
+          report_id: string
+          score?: number | null
+          user_id: string
+          weights?: Json
+        }
+        Update: {
+          confidence?: string | null
+          created_at?: string
+          data_coverage?: number | null
+          disclosure_score?: number | null
+          evidence?: Json
+          id?: string
+          indicators_used?: Json
+          negative_factors?: Json
+          performance_score?: number | null
+          pillar?: string
+          positive_factors?: Json
+          report_id?: string
+          score?: number | null
+          user_id?: string
+          weights?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esg_scores_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evidence: {
+        Row: {
+          category: string | null
+          claim: string
+          confidence: number
+          created_at: string
+          id: string
+          metric_key: string | null
+          page: number | null
+          report_id: string
+          snippet: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          claim: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          metric_key?: string | null
+          page?: number | null
+          report_id: string
+          snippet?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          claim?: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          metric_key?: string | null
+          page?: number | null
+          report_id?: string
+          snippet?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evidence_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      extracted_metrics: {
+        Row: {
+          category: string
+          confidence: number
+          created_at: string
+          evidence: string | null
+          id: string
+          metric_key: string
+          metric_name: string
+          page: number | null
+          report_id: string
+          status: string
+          unit: string | null
+          user_id: string
+          value: number | null
+          value_text: string | null
+          year: number | null
+        }
+        Insert: {
+          category: string
+          confidence?: number
+          created_at?: string
+          evidence?: string | null
+          id?: string
+          metric_key: string
+          metric_name: string
+          page?: number | null
+          report_id: string
+          status?: string
+          unit?: string | null
+          user_id: string
+          value?: number | null
+          value_text?: string | null
+          year?: number | null
+        }
+        Update: {
+          category?: string
+          confidence?: number
+          created_at?: string
+          evidence?: string | null
+          id?: string
+          metric_key?: string
+          metric_name?: string
+          page?: number | null
+          report_id?: string
+          status?: string
+          unit?: string | null
+          user_id?: string
+          value?: number | null
+          value_text?: string | null
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extracted_metrics_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -221,23 +483,76 @@ export type Database = {
         }
         Relationships: []
       }
+      report_documents: {
+        Row: {
+          created_at: string
+          extraction_method: string | null
+          file_name: string
+          id: string
+          mime_type: string | null
+          page_count: number | null
+          report_id: string
+          size_bytes: number | null
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          extraction_method?: string | null
+          file_name: string
+          id?: string
+          mime_type?: string | null
+          page_count?: number | null
+          report_id: string
+          size_bytes?: number | null
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          extraction_method?: string | null
+          file_name?: string
+          id?: string
+          mime_type?: string | null
+          page_count?: number | null
+          report_id?: string
+          size_bytes?: number | null
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_documents_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           analysis_data: Json | null
           company_name: string | null
           confidence_level: string | null
           created_at: string | null
+          document_type: string | null
           evidence: Json | null
           extracted_metrics: Json | null
           file_name: string | null
           file_url: string | null
           hash: string | null
           id: string
+          metadata: Json
           page_count: number | null
+          quality: Json
           report_year: number | null
           score: number | null
+          status: string
+          storage_path: string | null
           updated_at: string | null
           user_id: string | null
+          validation: Json
           validation_status: string | null
         }
         Insert: {
@@ -245,17 +560,23 @@ export type Database = {
           company_name?: string | null
           confidence_level?: string | null
           created_at?: string | null
+          document_type?: string | null
           evidence?: Json | null
           extracted_metrics?: Json | null
           file_name?: string | null
           file_url?: string | null
           hash?: string | null
           id?: string
+          metadata?: Json
           page_count?: number | null
+          quality?: Json
           report_year?: number | null
           score?: number | null
+          status?: string
+          storage_path?: string | null
           updated_at?: string | null
           user_id?: string | null
+          validation?: Json
           validation_status?: string | null
         }
         Update: {
@@ -263,20 +584,79 @@ export type Database = {
           company_name?: string | null
           confidence_level?: string | null
           created_at?: string | null
+          document_type?: string | null
           evidence?: Json | null
           extracted_metrics?: Json | null
           file_name?: string | null
           file_url?: string | null
           hash?: string | null
           id?: string
+          metadata?: Json
           page_count?: number | null
+          quality?: Json
           report_year?: number | null
           score?: number | null
+          status?: string
+          storage_path?: string | null
           updated_at?: string | null
           user_id?: string | null
+          validation?: Json
           validation_status?: string | null
         }
         Relationships: []
+      }
+      risk_factors: {
+        Row: {
+          category: string
+          confidence: number
+          created_at: string
+          description: string | null
+          evidence: string | null
+          id: string
+          kind: string
+          page: number | null
+          report_id: string
+          severity: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          confidence?: number
+          created_at?: string
+          description?: string | null
+          evidence?: string | null
+          id?: string
+          kind?: string
+          page?: number | null
+          report_id: string
+          severity?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          confidence?: number
+          created_at?: string
+          description?: string | null
+          evidence?: string | null
+          id?: string
+          kind?: string
+          page?: number | null
+          report_id?: string
+          severity?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_factors_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -315,6 +695,20 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id?: string }; Returns: boolean }
+      match_document_embeddings: {
+        Args: {
+          p_match_count?: number
+          p_query_embedding: string
+          p_report_id: string
+        }
+        Returns: {
+          chunk_index: number
+          chunk_text: string
+          id: string
+          page_number: number
+          similarity: number
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"
