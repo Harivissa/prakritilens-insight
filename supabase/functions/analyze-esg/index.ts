@@ -534,9 +534,9 @@ async function persist(admin: SupabaseClient, userId: string, reportId: string, 
     admin.from('risk_factors').delete().eq('report_id', reportId),
     admin.from('evidence').delete().eq('report_id', reportId),
   ]);
-  const chunk = async <T>(rows: T[], table: string) => {
+  const chunk = async (rows: Record<string, unknown>[], table: string) => {
     for (let i = 0; i < rows.length; i += 200) {
-      const { error } = await admin.from(table).insert(rows.slice(i, i + 200));
+      const { error } = await admin.from(table).insert(rows.slice(i, i + 200) as never);
       if (error) throw new Error(`Failed to save ${table}: ${error.message}`);
     }
   };
