@@ -3,6 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import type { ValidationResult, UploadedFile, PipelineStatus, ProcessingStatus } from '@/types/validation';
 import { extractDocument, ExtractionError, detectKind, type ExtractionResult } from '@/lib/documentExtraction';
+import type { Json } from '@/integrations/supabase/types';
+
+const toJson = (v: unknown): Json => JSON.parse(JSON.stringify(v ?? null));
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -331,8 +334,8 @@ export function useDocumentUpload() {
         validation_status: validation.final_validation_status,
         confidence_level: validation.confidence_level,
         document_type: meta?.document_type ?? validation.document_type,
-        metadata: { ...(meta ?? {}), company_name: companyName, reporting_year: reportYear, extraction: { method: extraction.method, total_chars: extraction.totalChars, ocr_pages: extraction.ocrPages, page_basis: extraction.pageBasis, warnings: extraction.warnings.slice(0, 10) }, file: { name: file.name, size: file.size, type: file.type } },
-        validation: { classification: validation.classification, confidence: validation.confidence, reasons: validation.reasons, signals: validation.signals, ai_review_available: validation.ai_review_available },
+        metadata: toJson({ ...(meta ?? {}), company_name: companyName, reporting_year: reportYear, extraction: { method: extraction.method, total_chars: extraction.totalChars, ocr_pages: extraction.ocrPages, page_basis: extraction.pageBasis, warnings: extraction.warnings.slice(0, 10) }, file: { name: file.name, size: file.size, type: file.type } }),
+        validation: toJson({ classification: validation.classification, confidence: validation.confidence, reasons: validation.reasons, signals: validation.signals, ai_review_available: validation.ai_review_available }),
         status: 'ANALYZING',
       }).select('id').single();
       if (rErr || !report) throw new Error(`Could not create report record: ${rErr?.message ?? 'unknown error'}`);
