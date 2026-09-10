@@ -1,387 +1,196 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// Document Validation & Recognition gatekeeper.
+// Input: page-preserving extracted text. Output: VALID / PARTIAL / INVALID with reasons,
+// plus report metadata (company, year, type) — "Not disclosed" when it cannot be established.
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+import { authenticate, AuthError, corsHeaders, json } from '../_shared/auth.ts';
+import { classifyDocument, normalize, type PageText } from '../_shared/validation.ts';
+import { AIError, chatJSON, errorResponse } from '../_shared/openai.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// ============================================
-// PRODUCTION-READY DOCUMENT VALIDATION
-// Three-tier validation: Keywords + Structure + Semantic AI
-// ============================================
-
-// Comprehensive ESG keyword lists by category
-const ESG_KEYWORDS = {
-  environmental: [
-    'sustainability', 'carbon', 'emissions', 'scope 1', 'scope 2', 'scope 3',
-    'greenhouse gas', 'ghg', 'renewable energy', 'energy consumption', 'waste management',
-    'water usage', 'biodiversity', 'pollution', 'climate change', 'carbon footprint',
-    'net zero', 'decarbonization', 'environmental impact', 'eco-friendly', 'green initiatives',
-    'circular economy', 'recycling', 'sustainable development', 'environmental performance',
-    'clean energy', 'solar', 'wind power', 'energy efficiency', 'carbon neutral',
-    'climate risk', 'environmental stewardship', 'natural resources', 'deforestation'
-  ],
-  social: [
-    'diversity', 'inclusion', 'employee', 'workforce', 'human rights', 'labor practices',
-    'health and safety', 'community engagement', 'stakeholder', 'social responsibility',
-    'csr', 'corporate social responsibility', 'fair trade', 'supply chain ethics',
-    'employee wellbeing', 'training and development', 'gender equality', 'pay equity',
-    'workplace safety', 'employee satisfaction', 'human capital', 'social impact',
-    'community investment', 'philanthropy', 'volunteer', 'dei', 'equity',
-    'occupational health', 'talent development', 'employee engagement'
-  ],
-  governance: [
-    'governance', 'board of directors', 'executive compensation', 'ethics', 'compliance',
-    'risk management', 'audit', 'transparency', 'accountability', 'anti-corruption',
-    'whistleblower', 'data privacy', 'cybersecurity', 'regulatory compliance',
-    'corporate governance', 'shareholder rights', 'board diversity', 'independent directors',
-    'code of conduct', 'business ethics', 'conflict of interest', 'internal controls',
-    'fiduciary duty', 'oversight', 'governance structure', 'audit committee'
-  ],
-  frameworks: [
-    'gri', 'global reporting initiative', 'sasb', 'sustainability accounting standards',
-    'tcfd', 'task force on climate', 'cdp', 'carbon disclosure project', 'csrd',
-    'corporate sustainability reporting directive', 'un sdgs', 'sustainable development goals',
-    'iso 14001', 'b corp', 'ungc', 'un global compact', 'science-based targets',
-    'sbti', 'integrated reporting', 'iirc', 'materiality assessment', 'esg disclosure',
-    'non-financial reporting', 'sustainability report', 'annual report', 'esg report',
-    'csr report', 'impact report', 'integrated report'
-  ]
-};
-
-// Section headers that indicate ESG content
-const ESG_SECTION_HEADERS = [
-  'environmental performance', 'social impact', 'governance structure',
-  'sustainability strategy', 'climate action', 'diversity and inclusion',
-  'stakeholder engagement', 'materiality assessment', 'risk management',
-  'supply chain', 'human capital', 'community relations', 'ethics and compliance',
-  'board composition', 'executive leadership', 'environmental stewardship',
-  'carbon emissions', 'energy management', 'water stewardship', 'waste reduction',
-  'employee health', 'safety performance', 'data security', 'privacy practices',
-  'sustainable development goals', 'gri index', 'sasb disclosure', 'tcfd alignment',
-  'about this report', 'reporting scope', 'assurance statement', 'methodology',
-  'our approach to sustainability', 'esg highlights', 'environmental goals',
-  'social responsibility', 'corporate governance', 'ceo message', 'chairman letter'
-];
-
-interface ValidationResult {
-  company_name: string;
-  detected_year: number | null;
-  page_count: number;
-  document_type: 'Annual Report' | 'ESG Report' | 'CSR Report' | 'Sustainability Report' | 'Unknown';
-  esg_keywords_detected: number;
-  keyword_breakdown: {
-    environmental: number;
-    social: number;
-    governance: number;
-    frameworks: number;
-  };
-  detected_frameworks: string[];
-  semantic_match_score: number;
-  section_headers_found: string[];
-  final_validation_status: 'Accepted: ESG/Sustainability Report' | 'Maybe: Needs manual confirmation' | 'Rejected: Not an ESG report';
-  confidence_level: 'High' | 'Medium' | 'Low';
-  rejection_reason?: string;
-  extracted_preview: string;
-  validation_details: {
-    keyword_score: number;
-    structure_score: number;
-    semantic_score: number;
-    total_score: number;
-  };
+interface LLMVerdict {
+  is_corporate_report: boolean;
+  document_type: string;
+  company_name: string | null;
+  reporting_year: number | null;
+  reporting_period: string | null;
+  industry: string | null;
+  headquarters_country: string | null;
+  confidence: number;
+  rationale: string;
 }
 
-// Count ESG keywords with detailed breakdown
-function countKeywords(text: string): { 
-  total: number; 
-  breakdown: { environmental: number; social: number; governance: number; frameworks: number };
-  detectedFrameworks: string[];
-} {
-  const lowerText = text.toLowerCase();
-  const breakdown = { environmental: 0, social: 0, governance: 0, frameworks: 0 };
-  const detectedFrameworks: string[] = [];
-  const frameworkMap: Record<string, string> = {
-    'gri': 'GRI', 'global reporting initiative': 'GRI',
-    'sasb': 'SASB', 'sustainability accounting standards': 'SASB',
-    'tcfd': 'TCFD', 'task force on climate': 'TCFD',
-    'cdp': 'CDP', 'carbon disclosure project': 'CDP',
-    'csrd': 'CSRD', 'corporate sustainability reporting directive': 'CSRD',
-    'un sdgs': 'UN SDGs', 'sustainable development goals': 'UN SDGs',
-    'sbti': 'SBTi', 'science-based targets': 'SBTi',
-    'ungc': 'UNGC', 'un global compact': 'UNGC'
-  };
-  
-  for (const [category, keywords] of Object.entries(ESG_KEYWORDS)) {
-    for (const keyword of keywords) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      const matches = lowerText.match(regex);
-      if (matches) {
-        breakdown[category as keyof typeof breakdown] += matches.length;
-        
-        // Track frameworks
-        if (frameworkMap[keyword]) {
-          if (!detectedFrameworks.includes(frameworkMap[keyword])) {
-            detectedFrameworks.push(frameworkMap[keyword]);
-          }
-        }
-      }
-    }
-  }
-  
-  return {
-    total: breakdown.environmental + breakdown.social + breakdown.governance + breakdown.frameworks,
-    breakdown,
-    detectedFrameworks
-  };
-}
+const MAX_PAGES = 1500;
 
-// Detect ESG section headers
-function detectSectionHeaders(text: string): string[] {
-  const lowerText = text.toLowerCase();
-  return ESG_SECTION_HEADERS.filter(header => lowerText.includes(header));
-}
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
-// Extract company name using multiple patterns
-function extractCompanyName(text: string): string {
-  const patterns = [
-    /([A-Z][A-Za-z0-9\s&,']+?)\s+(?:sustainability|annual|esg|csr|integrated)\s+report/i,
-    /(?:welcome to|about)\s+([A-Z][A-Za-z0-9\s&,.']+?)(?:\s+(?:inc|corp|ltd|llc|plc|group|company))?[.'"\s]/i,
-    /(?:^|\n)([A-Z][A-Za-z0-9\s&,']+?)\s+(?:20\d{2})\s+(?:sustainability|annual)/i,
-  ];
-  
-  for (const pattern of patterns) {
-    const match = text.match(pattern);
-    if (match?.[1]) {
-      const name = match[1].trim();
-      if (name.length > 2 && name.length < 80 && !/^(the|and|for|with)$/i.test(name)) {
-        return name.replace(/\s+/g, ' ');
-      }
-    }
-  }
-  return 'Unknown Company';
-}
-
-// Extract report year
-function extractYear(text: string): number | null {
-  const currentYear = new Date().getFullYear();
-  const yearPattern = /\b(20\d{2})\b/g;
-  const yearCounts: Record<number, number> = {};
-  
-  let match;
-  while ((match = yearPattern.exec(text)) !== null) {
-    const year = parseInt(match[1]);
-    if (year >= 2015 && year <= currentYear + 1) {
-      yearCounts[year] = (yearCounts[year] || 0) + 1;
-    }
-  }
-  
-  const years = Object.entries(yearCounts).sort((a, b) => b[1] - a[1] || parseInt(b[0]) - parseInt(a[0]));
-  return years.length > 0 ? parseInt(years[0][0]) : null;
-}
-
-// Detect document type
-function detectDocumentType(text: string): ValidationResult['document_type'] {
-  const lowerText = text.toLowerCase();
-  
-  if (/esg\s+report/i.test(lowerText)) return 'ESG Report';
-  if (/sustainability\s+report/i.test(lowerText)) return 'Sustainability Report';
-  if (/csr\s+report|corporate\s+social\s+responsibility\s+report/i.test(lowerText)) return 'CSR Report';
-  if (/integrated\s+report/i.test(lowerText)) return 'Sustainability Report';
-  if (/annual\s+report/i.test(lowerText)) return 'Annual Report';
-  if (/impact\s+report/i.test(lowerText)) return 'ESG Report';
-  
-  return 'Unknown';
-}
-
-// Extract page count from text markers
-function extractPageCount(text: string): number {
-  const pageMarkers = text.match(/\[Page \d+\]/g);
-  if (pageMarkers) return pageMarkers.length;
-  return Math.ceil(text.length / 3000);
-}
-
-// Semantic analysis using OpenAI
-async function getSemanticAnalysis(textSample: string): Promise<{ score: number; summary: string }> {
-  if (!openAIApiKey) {
-    console.log('OpenAI API key not found - using keyword-only validation');
-    return { score: 50, summary: 'Semantic analysis unavailable (no API key)' };
-  }
-  
   try {
-    console.log('Calling OpenAI for semantic analysis...');
-    
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an ESG document validation expert. Analyze text and determine if it's from a genuine ESG/sustainability/annual/CSR report.
+    const auth = await authenticate(req);
+    const body = await req.json().catch(() => null);
+    if (!body || !Array.isArray(body.pages)) return json({ error: 'Expected { pages: [{page, text}], fileName }' }, 400);
 
-Return ONLY a JSON object (no markdown):
-{
-  "score": <0-100>,
-  "summary": "<brief assessment>"
-}
+    const fileName: string = typeof body.fileName === 'string' ? body.fileName.slice(0, 255) : 'document';
+    const pages: PageText[] = (body.pages as unknown[])
+      .filter((p): p is { page: number; text: string } => !!p && typeof (p as PageText).page === 'number' && typeof (p as PageText).text === 'string')
+      .slice(0, MAX_PAGES)
+      .map((p) => ({ page: p.page, text: p.text.slice(0, 20000) }));
 
-Score guidelines:
-- 80-100: Clearly ESG/sustainability report with metrics and frameworks
-- 60-79: Contains significant ESG content
-- 40-59: Some ESG elements but not primary focus
-- 0-39: Not an ESG/sustainability document`
-          },
-          {
-            role: 'user',
-            content: `Is this from a genuine ESG/sustainability report?\n\n${textSample.slice(0, 6000)}`
-          }
-        ],
-        temperature: 0.2,
-        max_tokens: 200
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('OpenAI API error:', response.status);
-      return { score: 50, summary: 'Semantic analysis failed' };
+    const totalChars = pages.reduce((a, p) => a + p.text.trim().length, 0);
+    if (totalChars < 300) {
+      return json(buildResult({
+        classification: 'INVALID',
+        confidence: 0,
+        document_type: 'Unknown',
+        reasons: ['No readable text could be extracted from the document (it may be image-only, encrypted, or empty).'],
+        heuristic: classifyDocument(pages),
+        llm: null,
+        pageCount: pages.length,
+        fileName,
+        rejection: 'The document contains no extractable text, so it cannot be verified as an ESG report.',
+      }));
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-    
-    // Parse response - handle both JSON and text responses
+    const heuristic = classifyDocument(pages);
+    console.log(`[validate] ${fileName}: heuristic=${heuristic.classification} score=${heuristic.score} esgRatio=${heuristic.signals.esg_page_ratio} frameworks=${heuristic.signals.frameworks.join(',')}`);
+
+    // ---- LLM confirmation + metadata (never used to invent content) ----
+    let llm: LLMVerdict | null = null;
+    let llmError: string | null = null;
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        return {
-          score: Math.min(100, Math.max(0, parsed.score || 50)),
-          summary: parsed.summary || 'Analysis complete'
-        };
-      }
+      llm = await llmVerdict(pages, heuristic.top_esg_pages, fileName);
     } catch (e) {
-      console.log('Failed to parse as JSON, extracting score...');
-    }
-    
-    // Fallback: try to extract score from text
-    const scoreMatch = content.match(/(\d{1,3})/);
-    return {
-      score: scoreMatch ? Math.min(100, parseInt(scoreMatch[1])) : 50,
-      summary: content.slice(0, 200)
-    };
-    
-  } catch (error) {
-    console.error('Semantic analysis error:', error);
-    return { score: 50, summary: 'Semantic analysis error' };
-  }
-}
-
-serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  console.log('=== Document Validation Request ===');
-
-  try {
-    const { text, fileName, pageCount: inputPageCount } = await req.json();
-    
-    if (!text || typeof text !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'No text content provided for validation' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      llmError = e instanceof Error ? e.message : String(e);
+      console.warn('[validate] LLM verdict unavailable:', llmError);
     }
 
-    console.log(`File: ${fileName}, Text length: ${text.length}`);
+    // ---- Combine ----
+    let classification = heuristic.classification;
+    let confidence = heuristic.score;
+    const reasons = [...heuristic.reasons];
 
-    // === TIER 1: Keyword Analysis ===
-    const keywordAnalysis = countKeywords(text);
-    const keywordScore = Math.min(100, (keywordAnalysis.total / 50) * 100);
-    console.log(`Keywords found: ${keywordAnalysis.total}, Score: ${keywordScore.toFixed(0)}`);
-    
-    // === TIER 2: Structure Analysis ===
-    const sectionHeaders = detectSectionHeaders(text);
-    const structureScore = Math.min(100, (sectionHeaders.length / 5) * 100);
-    console.log(`Section headers found: ${sectionHeaders.length}, Score: ${structureScore.toFixed(0)}`);
-    
-    // === TIER 3: Semantic Analysis (AI) ===
-    const semanticResult = await getSemanticAnalysis(text.slice(0, 15000));
-    console.log(`Semantic score: ${semanticResult.score}`);
-    
-    // Extract metadata
-    const companyName = extractCompanyName(text);
-    const detectedYear = extractYear(text);
-    const documentType = detectDocumentType(text);
-    const pageCount = inputPageCount || extractPageCount(text);
-    
-    // === FINAL VALIDATION DECISION ===
-    // Weighted scoring: Semantic 50%, Keywords 30%, Structure 20%
-    const totalScore = (semanticResult.score * 0.5) + (keywordScore * 0.3) + (structureScore * 0.2);
-    
-    let finalStatus: ValidationResult['final_validation_status'];
-    let confidenceLevel: ValidationResult['confidence_level'];
-    let rejectionReason: string | undefined;
-    
-    // Decision rules
-    if (semanticResult.score >= 70 || keywordAnalysis.total >= 50) {
-      finalStatus = 'Accepted: ESG/Sustainability Report';
-      confidenceLevel = 'High';
-    } else if (totalScore >= 50 || (keywordAnalysis.total >= 20 && sectionHeaders.length >= 2)) {
-      finalStatus = 'Maybe: Needs manual confirmation';
-      confidenceLevel = 'Medium';
-    } else {
-      finalStatus = 'Rejected: Not an ESG report';
-      confidenceLevel = 'Low';
-      rejectionReason = `This document does not appear to be an ESG/sustainability report.\n\n` +
-        `• Keywords found: ${keywordAnalysis.total} (need 20+ for consideration)\n` +
-        `• ESG sections detected: ${sectionHeaders.length}\n` +
-        `• Semantic match: ${semanticResult.score}%\n\n` +
-        `Please upload a genuine:\n` +
-        `✓ ESG Report\n✓ Sustainability Report\n✓ Annual Report\n✓ CSR Report`;
-    }
-    
-    const result: ValidationResult = {
-      company_name: companyName,
-      detected_year: detectedYear,
-      page_count: pageCount,
-      document_type: documentType,
-      esg_keywords_detected: keywordAnalysis.total,
-      keyword_breakdown: keywordAnalysis.breakdown,
-      detected_frameworks: keywordAnalysis.detectedFrameworks,
-      semantic_match_score: semanticResult.score,
-      section_headers_found: sectionHeaders.slice(0, 10),
-      final_validation_status: finalStatus,
-      confidence_level: confidenceLevel,
-      rejection_reason: rejectionReason,
-      extracted_preview: text.slice(0, 500).replace(/\s+/g, ' ') + '...',
-      validation_details: {
-        keyword_score: Math.round(keywordScore),
-        structure_score: Math.round(structureScore),
-        semantic_score: semanticResult.score,
-        total_score: Math.round(totalScore)
+    if (llm) {
+      const llmConf = Math.round(Math.max(0, Math.min(1, llm.confidence)) * 100);
+      if (llm.is_corporate_report) {
+        confidence = Math.round(heuristic.score * 0.6 + llmConf * 0.4);
+        if (classification === 'PARTIAL' && llmConf >= 80 && heuristic.score >= 45) classification = 'VALID';
+        if (classification === 'INVALID' && llmConf >= 85 && heuristic.score >= 25) classification = 'PARTIAL';
+        reasons.push(`AI review: ${llm.rationale}`);
+      } else {
+        confidence = Math.round(heuristic.score * 0.6 + (100 - llmConf) * 0.4);
+        if (classification === 'VALID' && llmConf >= 70) classification = 'PARTIAL';
+        if (classification === 'PARTIAL' && llmConf >= 85) classification = 'INVALID';
+        reasons.push(`AI review disagrees: ${llm.rationale}`);
       }
-    };
+    } else {
+      reasons.push('AI review unavailable; decision based on document structure and content signals only.');
+      if (classification === 'VALID' && heuristic.score < 70) classification = 'PARTIAL';
+    }
 
-    console.log(`=== Validation Result: ${finalStatus} ===`);
-    
-    return new Response(
-      JSON.stringify(result),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-    
-  } catch (error) {
-    console.error('Document validation error:', error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Validation failed' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    const documentType = (llm?.is_corporate_report && llm.document_type) ? llm.document_type : heuristic.document_type;
+    const rejection = classification === 'INVALID'
+      ? `This file does not appear to be an ESG, sustainability, or annual report. ${heuristic.signals.negative_signals.length ? 'It resembles: ' + heuristic.signals.negative_signals.join(', ') + '. ' : ''}Only ${Math.round(heuristic.signals.esg_page_ratio * 100)}% of pages contain ESG content.`
+      : undefined;
+
+    return json(buildResult({ classification, confidence, document_type: documentType, reasons, heuristic, llm, pageCount: pages.length, fileName, rejection, llmError }));
+  } catch (e) {
+    if (e instanceof AuthError) return json({ error: e.message }, 401);
+    if (e instanceof AIError) return errorResponse(e, corsHeaders);
+    console.error('[validate] error', e);
+    return json({ error: e instanceof Error ? e.message : 'Validation failed' }, 500);
   }
 });
+
+async function llmVerdict(pages: PageText[], topPages: number[], fileName: string): Promise<LLMVerdict> {
+  const byPage = new Map(pages.map((p) => [p.page, p.text]));
+  const parts: string[] = [];
+  for (const p of pages.slice(0, 2)) parts.push(`[Page ${p.page}]\n${normalize(p.text).slice(0, 3000)}`);
+  for (const pn of topPages.slice(0, 4)) {
+    if (pn <= 2) continue;
+    const t = byPage.get(pn); if (t) parts.push(`[Page ${pn}]\n${normalize(t).slice(0, 1500)}`);
+  }
+  const excerpt = parts.join('\n\n');
+
+  const prompt = `File name: ${fileName}\nTotal pages: ${pages.length}\n\nDocument excerpts:\n${excerpt}`;
+  const system = `You are a strict document classifier for an ESG analytics platform. Decide whether the excerpts come from a genuine corporate ESG / sustainability / CSR / integrated / annual report (or an ESG data supplement) published by an organisation about its own operations.
+Return ONLY JSON:
+{"is_corporate_report": boolean, "document_type": "Sustainability Report"|"ESG Report"|"CSR Report"|"Integrated Report"|"Annual Report"|"ESG Data Supplement"|"Climate/TCFD Report"|"Other", "company_name": string|null, "reporting_year": number|null, "reporting_period": string|null, "industry": string|null, "headquarters_country": string|null, "confidence": number between 0 and 1, "rationale": short sentence}
+Rules: company_name must be the reporting organisation exactly as printed, or null if not evident. reporting_year is the fiscal/reporting year covered, or null. Never guess: use null when the excerpts do not state it. Academic papers, textbooks, news articles, consultancy whitepapers about ESG in general, regulations, and marketing brochures are NOT corporate reports.`;
+
+  const out = await chatJSON<LLMVerdict>({ system, user: prompt, maxTokens: 400, timeoutMs: 45_000 });
+  return {
+    is_corporate_report: !!out.is_corporate_report,
+    document_type: typeof out.document_type === 'string' ? out.document_type : 'Other',
+    company_name: typeof out.company_name === 'string' && out.company_name.trim() ? out.company_name.trim().slice(0, 120) : null,
+    reporting_year: typeof out.reporting_year === 'number' && out.reporting_year > 1990 && out.reporting_year < 2100 ? out.reporting_year : null,
+    reporting_period: typeof out.reporting_period === 'string' ? out.reporting_period.slice(0, 60) : null,
+    industry: typeof out.industry === 'string' ? out.industry.slice(0, 80) : null,
+    headquarters_country: typeof out.headquarters_country === 'string' ? out.headquarters_country.slice(0, 60) : null,
+    confidence: typeof out.confidence === 'number' ? out.confidence : 0.5,
+    rationale: typeof out.rationale === 'string' ? out.rationale.slice(0, 300) : '',
+  };
+}
+
+function buildResult(args: {
+  classification: 'VALID' | 'PARTIAL' | 'INVALID';
+  confidence: number;
+  document_type: string;
+  reasons: string[];
+  heuristic: ReturnType<typeof classifyDocument>;
+  llm: LLMVerdict | null;
+  pageCount: number;
+  fileName: string;
+  rejection?: string;
+  llmError?: string | null;
+}) {
+  const { classification, confidence, heuristic, llm } = args;
+  const companyName = llm?.company_name ?? heuristic.candidate_company_names[0] ?? 'Not disclosed';
+  const year = llm?.reporting_year ?? heuristic.candidate_years[0] ?? null;
+  const s = heuristic.signals;
+  const legacyStatus = classification === 'VALID' ? 'Accepted: ESG/Sustainability Report' : classification === 'PARTIAL' ? 'Maybe: Needs manual confirmation' : 'Rejected: Not an ESG report';
+  const confidenceLevel = confidence >= 75 ? 'High' : confidence >= 45 ? 'Medium' : 'Low';
+  const legacyType = /sustainability|esg data|climate/i.test(args.document_type) ? 'Sustainability Report' : /esg/i.test(args.document_type) ? 'ESG Report' : /csr/i.test(args.document_type) ? 'CSR Report' : /annual|integrated|brsr/i.test(args.document_type) ? 'Annual Report' : 'Unknown';
+
+  return {
+    // ---- New contract ----
+    classification,
+    confidence,
+    reasons: args.reasons,
+    signals: s,
+    metadata: {
+      company_name: companyName,
+      reporting_year: year,
+      reporting_period: llm?.reporting_period ?? null,
+      industry: llm?.industry ?? 'Not disclosed',
+      headquarters_country: llm?.headquarters_country ?? 'Not disclosed',
+      document_type: args.document_type,
+      source: llm ? 'ai+heuristic' : 'heuristic',
+    },
+    ai_review_available: !!llm,
+    ai_review_error: args.llmError ?? null,
+    // ---- Legacy fields consumed by the existing UI ----
+    company_name: companyName,
+    detected_year: year,
+    page_count: args.pageCount,
+    document_type: legacyType,
+    contains_esg_sections: s.section_headers.length > 0,
+    esg_keywords_detected: Object.values(s.family_hits).reduce((a, b) => a + b, 0),
+    keyword_breakdown: {
+      environmental: s.pillar_hits.environmental,
+      social: s.pillar_hits.social,
+      governance: s.pillar_hits.governance,
+      frameworks: s.frameworks.length,
+    },
+    detected_frameworks: s.frameworks,
+    semantic_match_score: llm ? Math.round(llm.confidence * 100) : heuristic.score,
+    section_headers_found: s.section_headers,
+    final_validation_status: legacyStatus,
+    confidence_level: confidenceLevel,
+    rejection_reason: args.rejection,
+    extracted_preview: args.reasons.slice(0, 4).join(' • '),
+    validation_details: {
+      keyword_score: Math.min(100, s.distinct_families * 5),
+      structure_score: Math.min(100, s.section_headers.length * 10),
+      semantic_score: llm ? Math.round(llm.confidence * 100) : heuristic.score,
+      total_score: confidence,
+    },
+  };
+}
