@@ -108,6 +108,7 @@ export function readabilityScore(text: string): number {
 export const isReadable = (text: string) => readabilityScore(text) >= READABLE_THRESHOLD;
 
 class OcrServiceError extends Error {
+  retryAfterMs?: number;
   constructor(message: string, public status: number, public code?: string) { super(message); }
   get transient() { return this.status === 429 || this.status >= 500 || this.status === 0; }
   get terminal() { return this.status === 401 || this.status === 402 || this.status === 403; }

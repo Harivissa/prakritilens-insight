@@ -340,7 +340,7 @@ export function useDocumentUpload() {
         validation_status: validation.final_validation_status,
         confidence_level: validation.confidence_level,
         document_type: meta?.document_type ?? validation.document_type,
-        metadata: toJson({ ...(meta ?? {}), company_name: companyName, reporting_year: reportYear, extraction: { method: extraction.method, total_chars: extraction.totalChars, ocr_pages: extraction.ocrPages, page_basis: extraction.pageBasis, warnings: extraction.warnings.slice(0, 10) }, file: { name: file.name, size: file.size, type: file.type } }),
+        metadata: toJson({ ...(meta ?? {}), company_name: companyName, reporting_year: reportYear, extraction: { method: extraction.method, mode: extraction.mode ?? null, total_chars: extraction.totalChars, ocr_pages: extraction.ocrPages, ocr_retries: extraction.ocrRetries ?? 0, unreadable_pages: extraction.unreadablePages ?? [], page_basis: extraction.pageBasis, warnings: extraction.warnings.slice(0, 10) }, file: { name: file.name, size: file.size, type: file.type } }),
         validation: toJson({ classification: validation.classification, confidence: validation.confidence, reasons: validation.reasons, signals: validation.signals, ai_review_available: validation.ai_review_available }),
         status: 'ANALYZING',
       }).select('id').single();
