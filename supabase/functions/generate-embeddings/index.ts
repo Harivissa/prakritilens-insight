@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
         chunk_index: b.index,
         page_number: b.page,
         embedding: JSON.stringify(vectors[j]),
-        metadata: { chars: b.text.length, model: 'text-embedding-3-small', dims: 384 },
+        metadata: { chars: b.text.length, model: 'openai/text-embedding-3-small', dims: 384 },
       }));
       const { error } = await auth.admin.from('document_embeddings').insert(rows);
       if (error) throw new Error(`Failed to store embeddings: ${error.message}`);

@@ -126,7 +126,7 @@ ${passages ? `\nRELEVANT PASSAGES FROM THE REPORT:\n${passages}` : '\n(No passag
     for (const h of history) if (h.role === 'user' || h.role === 'assistant') messages.push({ role: h.role, content: h.content.slice(0, 2000) });
     messages.push({ role: 'user', content: message });
 
-    const reply = await chatWithHistory(messages, 'gpt-4o', 1200, 0.1);
+    const reply = await chatWithHistory(messages);
 
     const citedPages = [...new Set([...reply.matchAll(/\(p\.\s?(\d+)\)/g)].map((m) => Number(m[1])))];
     const citations = chunks
@@ -175,7 +175,7 @@ async function conceptualAnswer(message: string, tone: Tone): Promise<string> {
     { role: 'system', content: `You explain ESG and sustainability concepts. ${TONE_HINT[tone]} Only answer ESG-related conceptual questions; for anything else reply exactly: "${OUT_OF_SCOPE}". Begin your answer with "General ESG knowledge (no report uploaded):".` },
     { role: 'user', content: message },
   ];
-  return chatWithHistory(msgs, 'gpt-4o-mini', 700, 0.2);
+  return chatWithHistory(msgs);
 }
 
 async function retrieve(db: Db, reportId: string, message: string) {
