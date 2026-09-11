@@ -23,7 +23,12 @@ export interface PageText {
   page: number;
   text: string;
   source: 'text' | 'ocr' | 'approximate';
+  /** OCR attempts spent on this page (scanned mode) */
+  ocrAttempts?: number;
 }
+
+/** How the PDF was read: 'text' = text layer, 'scanned' = mostly image pages (OCR), 'mixed' = some OCR pages */
+export type PdfMode = 'text' | 'scanned' | 'mixed';
 
 export interface ExtractionResult {
   pages: PageText[];
@@ -35,6 +40,12 @@ export interface ExtractionResult {
   warnings: string[];
   /** Real printed page numbers (PDF) or approximate blocks (DOCX/TXT) */
   pageBasis: 'real' | 'approximate';
+  /** PDF only */
+  mode?: PdfMode;
+  /** Total OCR re-tries performed (renders beyond the first per page) */
+  ocrRetries?: number;
+  /** Pages that stayed unreadable after every OCR attempt */
+  unreadablePages?: number[];
 }
 
 export interface ExtractionProgress {
@@ -43,13 +54,65 @@ export interface ExtractionProgress {
   totalPages: number;
   ocrPages?: number;
   detail?: string;
+  mode?: PdfMode;
+  /** Current OCR attempt for `page` (1-based) */
+  attempt?: number;
+  /** OCR pages finished so far */
+  ocrDone?: number;
 }
 
 const MIN_PAGE_CHARS_FOR_TEXT = 40;
-const MAX_OCR_PAGES = 40;
+const MAX_OCR_PAGES_MIXED = 40;
+const MAX_OCR_PAGES_SCANNED = 60;
 const OCR_CONCURRENCY = 3;
+/** A document is treated as scanned when at least this share of pages has no usable text layer */
+const SCANNED_SHARE = 0.5;
+/** Minimum readability (0..1) for OCR / text-layer output to be accepted without another attempt */
+const READABLE_THRESHOLD = 0.6;
+
+/**
+ * Escalating render settings for OCR. Each retry renders the page larger and with
+ * contrast enhancement so faint scans, small print and low-quality photocopies get a second chance.
+ */
+const OCR_ATTEMPTS: RenderSettings[] = [
+  { maxWidth: 1600, format: 'jpeg', quality: 0.82, enhance: false },
+  { maxWidth: 2400, format: 'jpeg', quality: 0.9, enhance: true },
+  { maxWidth: 2800, format: 'png', enhance: true, binarize: true },
+];
+const OCR_TRANSIENT_RETRIES = 2;
 
 export const SUPPORTED_EXTENSIONS = ['.pdf', '.docx', '.txt', '.csv'];
+
+interface RenderSettings { maxWidth: number; format: 'jpeg' | 'png'; quality?: number; enhance: boolean; binarize?: boolean }
+
+/**
+ * 0..1 estimate of whether text looks like real language rather than OCR noise or a
+ * garbled font encoding. Word-like tokens, letter share and sane word length all count.
+ */
+export function readabilityScore(text: string): number {
+  const stripped = text.replace(/\s+/g, '');
+  if (stripped.length < MIN_PAGE_CHARS_FOR_TEXT) return 0;
+  const tokens = text.split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return 0;
+  const wordLike = tokens.filter((t) => /^[A-Za-z][A-Za-z'’\-]{1,}[.,;:!?)]*$/.test(t) || /^[($€£]?[\d][\d.,%]*[)%]?$/.test(t) || /^[A-Za-z0-9][A-Za-z0-9.,;:%()\-'’/&|]*$/.test(t) && /[aeiouAEIOU0-9]/.test(t)).length;
+  const letters = (stripped.match(/[A-Za-z]/g) ?? []).length;
+  const digits = (stripped.match(/\d/g) ?? []).length;
+  const letterShare = (letters + digits) / stripped.length;
+  const avgLen = stripped.length / tokens.length;
+  let score = 0.7 * (wordLike / tokens.length) + 0.3 * letterShare;
+  if (avgLen > 16) score *= 0.5; // glued-together glyphs
+  if (avgLen < 2.2) score *= 0.6; // exploded single characters
+  return Math.max(0, Math.min(1, score));
+}
+
+export const isReadable = (text: string) => readabilityScore(text) >= READABLE_THRESHOLD;
+
+class OcrServiceError extends Error {
+  retryAfterMs?: number;
+  constructor(message: string, public status: number, public code?: string) { super(message); }
+  get transient() { return this.status === 429 || this.status >= 500 || this.status === 0; }
+  get terminal() { return this.status === 401 || this.status === 402 || this.status === 403; }
+}
 
 export function detectKind(file: File): 'pdf' | 'docx' | 'text' | null {
   const name = file.name.toLowerCase();
@@ -91,6 +154,7 @@ async function extractPdf(file: File, onProgress?: (p: ExtractionProgress) => vo
   const pages: PageText[] = [];
   const ocrQueue: number[] = [];
   const warnings: string[] = [];
+  let garbledPages = 0;
 
   for (let i = 1; i <= totalPages; i++) {
     if (signal?.aborted) throw new ExtractionError('ABORTED', 'Extraction cancelled');
@@ -103,7 +167,13 @@ async function extractPdf(file: File, onProgress?: (p: ExtractionProgress) => vo
     } catch (e) {
       warnings.push(`Page ${i}: text layer unreadable (${(e as Error).message})`);
     }
-    if (text.replace(/\s+/g, '').length < MIN_PAGE_CHARS_FOR_TEXT) {
+    const hasText = text.replace(/\s+/g, '').length >= MIN_PAGE_CHARS_FOR_TEXT;
+    if (!hasText) {
+      ocrQueue.push(i);
+      pages.push({ page: i, text: '', source: 'text' });
+    } else if (!isReadable(text)) {
+      // Text layer exists but is garbage (broken font encoding / vector outlines) — treat like a scan.
+      garbledPages++;
       ocrQueue.push(i);
       pages.push({ page: i, text: '', source: 'text' });
     } else {
@@ -112,38 +182,82 @@ async function extractPdf(file: File, onProgress?: (p: ExtractionProgress) => vo
     if (i % 5 === 0 || i === totalPages) onProgress?.({ stage: 'extracting', page: i, totalPages, ocrPages: ocrQueue.length });
   }
 
-  // ---- OCR image-only pages ----
+  const mode: PdfMode = ocrQueue.length === 0 ? 'text' : ocrQueue.length / totalPages >= SCANNED_SHARE ? 'scanned' : 'mixed';
+  if (garbledPages) warnings.push(`${garbledPages} page(s) had an unreadable text layer and were re-read with OCR.`);
+
+  // ---- OCR image-only / garbled pages (scanned mode retries until readable) ----
   let ocrDone = 0;
+  let ocrRetries = 0;
   let ocrTruncated = false;
+  const unreadablePages: number[] = [];
   if (ocrQueue.length > 0) {
-    const targets = ocrQueue.slice(0, MAX_OCR_PAGES);
-    if (ocrQueue.length > MAX_OCR_PAGES) {
+    const maxOcr = mode === 'scanned' ? MAX_OCR_PAGES_SCANNED : MAX_OCR_PAGES_MIXED;
+    const targets = ocrQueue.slice(0, maxOcr);
+    if (ocrQueue.length > maxOcr) {
       ocrTruncated = true;
-      warnings.push(`${ocrQueue.length} pages have no text layer; OCR was applied to the first ${MAX_OCR_PAGES} only.`);
+      warnings.push(`${ocrQueue.length} pages have no readable text layer; OCR was applied to the first ${maxOcr} only.`);
     }
+    onProgress?.({ stage: 'ocr', page: targets[0], totalPages, ocrPages: targets.length, ocrDone: 0, mode, attempt: 1, detail: `OCR 0/${targets.length}` });
+
     let failures = 0;
+    let fatal: OcrServiceError | null = null;
     const worker = async (pageNums: number[]) => {
       for (const pn of pageNums) {
         if (signal?.aborted) throw new ExtractionError('ABORTED', 'Extraction cancelled');
+        if (fatal) return;
+        const entry = pages[pn - 1];
+        let best = { text: '', score: 0 };
+        let attemptsUsed = 0;
         try {
-          const dataUrl = await renderPageToImage(pdf, pn);
-          const text = await ocrViaEdge(dataUrl, pn);
-          const entry = pages[pn - 1];
-          if (text.trim()) { entry.text = text; entry.source = 'ocr'; }
+          for (let a = 0; a < OCR_ATTEMPTS.length; a++) {
+            attemptsUsed = a + 1;
+            if (a > 0) ocrRetries++;
+            onProgress?.({ stage: 'ocr', page: pn, totalPages, ocrPages: targets.length, ocrDone, mode, attempt: a + 1, detail: `OCR ${ocrDone}/${targets.length}` });
+            const dataUrl = await renderPageToImage(pdf, pn, OCR_ATTEMPTS[a]);
+            const text = await ocrWithTransientRetry(dataUrl, pn, signal);
+            const score = readabilityScore(text);
+            if (score > best.score) best = { text, score };
+            if (score >= READABLE_THRESHOLD) break;
+            if (a === OCR_ATTEMPTS.length - 1 && text.trim().length === 0 && best.text.length === 0) break; // genuinely blank page
+          }
         } catch (e) {
+          if (e instanceof OcrServiceError && e.terminal) { fatal = e; return; }
+          if (e instanceof ExtractionError) throw e;
           failures++;
           warnings.push(`Page ${pn}: OCR failed (${(e as Error).message})`);
         } finally {
           ocrDone++;
-          onProgress?.({ stage: 'ocr', page: pn, totalPages, ocrPages: targets.length, detail: `OCR ${ocrDone}/${targets.length}` });
+          onProgress?.({ stage: 'ocr', page: pn, totalPages, ocrPages: targets.length, ocrDone, mode, attempt: attemptsUsed, detail: `OCR ${ocrDone}/${targets.length}` });
+        }
+        entry.ocrAttempts = attemptsUsed;
+        if (best.text.trim()) {
+          entry.text = best.text;
+          entry.source = 'ocr';
+          if (best.score < READABLE_THRESHOLD) {
+            unreadablePages.push(pn);
+            warnings.push(`Page ${pn}: OCR text still looks noisy after ${attemptsUsed} attempts (readability ${(best.score * 100).toFixed(0)}%).`);
+          }
+        } else if (attemptsUsed > 0) {
+          unreadablePages.push(pn);
         }
       }
     };
     const buckets: number[][] = Array.from({ length: OCR_CONCURRENCY }, () => []);
     targets.forEach((pn, idx) => buckets[idx % OCR_CONCURRENCY].push(pn));
     await Promise.all(buckets.map(worker));
-    if (failures === targets.length && targets.length > 0 && pages.every((p) => !p.text.trim())) {
-      throw new ExtractionError('OCR_FAILED', 'The PDF appears to be image-only and OCR could not read it.');
+
+    if (fatal) {
+      pdf.destroy();
+      const f = fatal as OcrServiceError;
+      throw new ExtractionError('OCR_FAILED', `OCR is unavailable right now (${f.message}). ${mode === 'scanned' ? 'This PDF is scanned, so it cannot be read until OCR is available.' : 'Image-only pages could not be read.'}`);
+    }
+    const readableOcr = targets.filter((pn) => pages[pn - 1].source === 'ocr' && !unreadablePages.includes(pn)).length;
+    if (mode === 'scanned' && targets.length > 0 && readableOcr === 0) {
+      pdf.destroy();
+      throw new ExtractionError('OCR_FAILED', `This PDF is scanned and OCR could not read any of its ${targets.length} pages after ${OCR_ATTEMPTS.length} attempts each${failures ? ` (${failures} service failures)` : ''}. Try a higher-resolution scan.`);
+    }
+    if (mode === 'scanned' && readableOcr < targets.length * 0.5) {
+      warnings.push(`Scanned PDF: only ${readableOcr} of ${targets.length} pages were readable after OCR retries; analysis will be based on those pages.`);
     }
   }
 
@@ -156,7 +270,7 @@ async function extractPdf(file: File, onProgress?: (p: ExtractionProgress) => vo
     throw new ExtractionError('EMPTY', ocrQueue.length ? 'No readable text could be recovered from this PDF (image-only pages could not be read).' : 'This PDF contains no extractable text.');
   }
   const method = ocrPages === 0 ? 'pdf-text' : ocrPages === nonEmpty.length ? 'pdf-ocr' : 'pdf-mixed';
-  onProgress?.({ stage: 'done', page: totalPages, totalPages, ocrPages });
+  onProgress?.({ stage: 'done', page: totalPages, totalPages, ocrPages, mode });
   return {
     pages: nonEmpty,
     pageCount: totalPages,
@@ -166,7 +280,27 @@ async function extractPdf(file: File, onProgress?: (p: ExtractionProgress) => vo
     ocrPages,
     warnings: ocrTruncated ? warnings : warnings.slice(0, 20),
     pageBasis: 'real',
+    mode,
+    ocrRetries,
+    unreadablePages,
   };
+}
+
+/** Retries the OCR service on rate limits / transient failures with backoff; terminal errors propagate. */
+async function ocrWithTransientRetry(dataUrl: string, page: number, signal?: AbortSignal): Promise<string> {
+  let lastErr: unknown;
+  for (let i = 0; i <= OCR_TRANSIENT_RETRIES; i++) {
+    if (signal?.aborted) throw new ExtractionError('ABORTED', 'Extraction cancelled');
+    try {
+      return await ocrViaEdge(dataUrl, page);
+    } catch (e) {
+      lastErr = e;
+      if (!(e instanceof OcrServiceError) || !e.transient || i === OCR_TRANSIENT_RETRIES) throw e;
+      const wait = e.retryAfterMs ?? 1500 * 2 ** i + Math.random() * 500;
+      await new Promise((r) => setTimeout(r, wait));
+    }
+  }
+  throw lastErr;
 }
 
 interface TextItemLike { str?: string; hasEOL?: boolean; transform?: number[]; width?: number }
@@ -203,33 +337,80 @@ function assembleText(items: TextItemLike[]): string {
   return out.join('\n');
 }
 
-async function renderPageToImage(pdf: pdfjsLib.PDFDocumentProxy, pageNumber: number): Promise<string> {
+/** Server-side OCR accepts data URLs up to ~6 MB; stay under it even for large PNG renders. */
+const MAX_OCR_DATA_URL = 5.5 * 1024 * 1024;
+
+async function renderPageToImage(pdf: pdfjsLib.PDFDocumentProxy, pageNumber: number, s: RenderSettings): Promise<string> {
   const page = await pdf.getPage(pageNumber);
   const base = page.getViewport({ scale: 1 });
-  const scale = Math.min(2, 1600 / base.width);
+  const scale = Math.min(4, s.maxWidth / base.width);
   const viewport = page.getViewport({ scale });
   const canvas = document.createElement('canvas');
   canvas.width = Math.ceil(viewport.width);
   canvas.height = Math.ceil(viewport.height);
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: s.enhance });
   if (!ctx) throw new Error('Canvas not available');
+  // White backdrop: scans with transparency otherwise OCR as black pages.
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
   await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+  if (s.enhance) enhanceForOcr(ctx, canvas.width, canvas.height, !!s.binarize);
+  let dataUrl = s.format === 'png' ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', s.quality ?? 0.85);
+  if (dataUrl.length > MAX_OCR_DATA_URL) dataUrl = canvas.toDataURL('image/jpeg', 0.8);
   page.cleanup();
   canvas.width = 0; canvas.height = 0;
   return dataUrl;
 }
 
+/** Grayscale + percentile contrast stretch (optionally adaptive threshold) to lift faint or low-contrast scans. */
+function enhanceForOcr(ctx: CanvasRenderingContext2D, w: number, h: number, binarize: boolean) {
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+  const n = w * h;
+  const gray = new Uint8ClampedArray(n);
+  const hist = new Uint32Array(256);
+  for (let i = 0, p = 0; i < n; i++, p += 4) {
+    const g = (d[p] * 299 + d[p + 1] * 587 + d[p + 2] * 114) / 1000;
+    gray[i] = g;
+    hist[g | 0]++;
+  }
+  // 1st / 99th percentile bounds
+  let lo = 0, hi = 255, acc = 0;
+  for (let v = 0; v < 256; v++) { acc += hist[v]; if (acc >= n * 0.01) { lo = v; break; } }
+  acc = 0;
+  for (let v = 255; v >= 0; v--) { acc += hist[v]; if (acc >= n * 0.01) { hi = v; break; } }
+  const range = Math.max(1, hi - lo);
+  let sum = 0;
+  for (let i = 0; i < n; i++) { const v = Math.max(0, Math.min(255, ((gray[i] - lo) / range) * 255)); gray[i] = v; sum += v; }
+  const threshold = binarize ? Math.min(200, Math.max(110, (sum / n) * 0.85)) : 0;
+  for (let i = 0, p = 0; i < n; i++, p += 4) {
+    const v = binarize ? (gray[i] < threshold ? 0 : 255) : gray[i];
+    d[p] = d[p + 1] = d[p + 2] = v;
+    d[p + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
 async function ocrViaEdge(dataUrl: string, page: number): Promise<string> {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/ocr-page`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ image: dataUrl, page }),
-  });
+  if (!session) throw new OcrServiceError('Not authenticated', 401);
+  let res: Response;
+  try {
+    res = await fetch(`${SUPABASE_URL}/functions/v1/ocr-page`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: dataUrl, page }),
+    });
+  } catch (e) {
+    throw new OcrServiceError(`network error (${(e as Error).message})`, 0);
+  }
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error || `OCR service error ${res.status}`);
+  if (!res.ok) {
+    const err = new OcrServiceError(body.error || `OCR service error ${res.status}`, res.status, body.code);
+    const ra = Number(res.headers.get('Retry-After'));
+    if (Number.isFinite(ra) && ra > 0) err.retryAfterMs = ra * 1000;
+    throw err;
+  }
   return typeof body.text === 'string' ? body.text : '';
 }
 

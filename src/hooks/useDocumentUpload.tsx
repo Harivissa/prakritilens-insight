@@ -254,11 +254,17 @@ export function useDocumentUpload() {
       // EXTRACTING
       emit(id, onStatus, { status: 'EXTRACTING', progress: within('EXTRACTING', 0), label: 'Opening document…' });
       const extraction = await extractDocument(file, (p) => {
-        if (p.stage === 'extracting') emit(id, onStatus, { status: 'EXTRACTING', progress: within('EXTRACTING', (p.page / Math.max(p.totalPages, 1)) * 0.8), label: `Extracting page ${p.page} of ${p.totalPages}${p.ocrPages ? ` (${p.ocrPages} image pages queued for OCR)` : ''}` });
-        else if (p.stage === 'ocr') emit(id, onStatus, { status: 'EXTRACTING', progress: within('EXTRACTING', 0.8 + 0.2 * (parseInt(p.detail?.split(' ')[1] ?? '0') / Math.max(p.ocrPages ?? 1, 1))), label: `Reading image pages with OCR — ${p.detail}` });
+        if (p.stage === 'extracting') emit(id, onStatus, { status: 'EXTRACTING', progress: within('EXTRACTING', (p.page / Math.max(p.totalPages, 1)) * 0.5), label: `Extracting page ${p.page} of ${p.totalPages}${p.ocrPages ? ` (${p.ocrPages} image pages queued for OCR)` : ''}` });
+        else if (p.stage === 'ocr') {
+          const done = p.ocrDone ?? 0;
+          const total = Math.max(p.ocrPages ?? 1, 1);
+          const modeLabel = p.mode === 'scanned' ? 'Scanned PDF detected — reading pages with OCR' : 'Reading image pages with OCR';
+          const attempt = p.attempt && p.attempt > 1 ? ` · retry ${p.attempt - 1} at higher resolution` : '';
+          emit(id, onStatus, { status: 'EXTRACTING', progress: within('EXTRACTING', 0.5 + 0.5 * (done / total)), label: `${modeLabel} — page ${p.page}, ${done}/${total} done${attempt}` });
+        }
       });
       entry.extraction = extraction;
-      updateFile(id, { extraction: { pageCount: extraction.pageCount, method: extraction.method, totalChars: extraction.totalChars, ocrPages: extraction.ocrPages, warnings: extraction.warnings } });
+      updateFile(id, { extraction: { pageCount: extraction.pageCount, method: extraction.method, totalChars: extraction.totalChars, ocrPages: extraction.ocrPages, warnings: extraction.warnings, mode: extraction.mode, ocrRetries: extraction.ocrRetries, unreadablePages: extraction.unreadablePages } });
 
       // VALIDATING
       emit(id, onStatus, { status: 'VALIDATING', progress: within('VALIDATING', 0.2), label: `Checking whether this is an ESG report (${extraction.pages.length} pages, ${extraction.totalChars.toLocaleString()} characters)…` });
@@ -334,7 +340,7 @@ export function useDocumentUpload() {
         validation_status: validation.final_validation_status,
         confidence_level: validation.confidence_level,
         document_type: meta?.document_type ?? validation.document_type,
-        metadata: toJson({ ...(meta ?? {}), company_name: companyName, reporting_year: reportYear, extraction: { method: extraction.method, total_chars: extraction.totalChars, ocr_pages: extraction.ocrPages, page_basis: extraction.pageBasis, warnings: extraction.warnings.slice(0, 10) }, file: { name: file.name, size: file.size, type: file.type } }),
+        metadata: toJson({ ...(meta ?? {}), company_name: companyName, reporting_year: reportYear, extraction: { method: extraction.method, mode: extraction.mode ?? null, total_chars: extraction.totalChars, ocr_pages: extraction.ocrPages, ocr_retries: extraction.ocrRetries ?? 0, unreadable_pages: extraction.unreadablePages ?? [], page_basis: extraction.pageBasis, warnings: extraction.warnings.slice(0, 10) }, file: { name: file.name, size: file.size, type: file.type } }),
         validation: toJson({ classification: validation.classification, confidence: validation.confidence, reasons: validation.reasons, signals: validation.signals, ai_review_available: validation.ai_review_available }),
         status: 'ANALYZING',
       }).select('id').single();

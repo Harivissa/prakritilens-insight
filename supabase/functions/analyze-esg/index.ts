@@ -4,12 +4,12 @@
 // and persists normalised results. Never fabricates: unverifiable claims are dropped.
 
 import { authenticate, AuthError, corsHeaders, json } from '../_shared/auth.ts';
-import { AIError, chatJSON, errorResponse } from '../_shared/openai.ts';
+import { AIError, CHAT_MODEL, chatJSON, errorResponse } from '../_shared/openai.ts';
 import { FRAMEWORKS, frameworkIndicators, INDICATOR_MAP, indicatorsFor, METRIC_PATTERNS, TERM_FAMILIES, type MetricStatus, type Pillar } from '../_shared/esg-taxonomy.ts';
 import { computeScores, computeTrends, forecast, latestPerIndicator, type ExtractedMetric, type RiskItem } from '../_shared/scoring.ts';
 import { findValuePage, normalize, snippetOnPage, type PageText } from '../_shared/validation.ts';
 
-const MODEL = 'gpt-4o-mini';
+const MODEL = CHAT_MODEL;
 const PILLARS: Pillar[] = ['environmental', 'social', 'governance'];
 const PAGE_BUDGET: Record<Pillar, number> = { environmental: 18, social: 14, governance: 14 };
 const EXCERPT_CHARS = 3500;

@@ -92,6 +92,9 @@ export interface UploadedFile {
     totalChars: number;
     ocrPages: number;
     warnings: string[];
+    mode?: 'text' | 'scanned' | 'mixed';
+    ocrRetries?: number;
+    unreadablePages?: number[];
   };
   uploadedAt: Date;
 }

@@ -25,3 +25,8 @@ Constraint: no UI redesign. Only logic, backend, DB, AI, tests.
 - [ ] Dashboard modal: remove Math.random fallbacks
 - [ ] Tests: deno unit tests (validation, scoring) + Playwright e2e with real PDFs (valid report, random PDF, empty/scanned)
 - [ ] Deploy functions, run tests, fix errors
+
+## Added 2026-09-11
+- [x] Switch backend AI helpers (chat/JSON/history/embeddings/OCR) from OpenAI direct to Lovable AI Gateway (OpenAI balance exhausted)
+- [ ] Rerun Apple pipeline walk-through: validation → extraction → scores → risks → chat with evidence
+- [ ] Scanned-PDF mode: detect image-only pages, OCR them, retry extraction (re-render at higher scale) until text is readable, surface status in upload UI
